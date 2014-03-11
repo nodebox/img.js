@@ -11,7 +11,7 @@
  *
  */
 
-Pixastic.Effects = (function() {
+(function() {
 
     function defaultOptions(options, defaults) {
         var O = {};
@@ -340,7 +340,7 @@ Pixastic.Effects = (function() {
     }
 
 
-    return {
+    var process = {
 
         invert : function(inData, outData, width, height, options, progress) {
             var n = width * height * 4,
@@ -1201,4 +1201,18 @@ Pixastic.Effects = (function() {
 
     };
 
-})();
+    // MODULE SUPPORT ///////////////////////////////////////////////////////
+
+    if (typeof module !== 'undefined') {
+        module.exports = process;
+    } else if (typeof define !== 'undefined') {
+        define('process', ['underscore'], function () {
+            return process;
+        });
+    } else if (typeof self !== 'undefined') {
+        self.process = process;
+    } else {
+        window.process = process;
+    }
+
+}());
