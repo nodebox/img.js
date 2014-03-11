@@ -19,17 +19,17 @@
 
     function defaultOptions(options, defaults) {
         if (!options) { return defaults; }
-        var opt, O = {};
+        var opt, o = {};
         for (opt in defaults) {
             if (defaults.hasOwnProperty(opt)) {
                 if (typeof options[opt] === 'undefined') {
-                    O[opt] = defaults[opt];
+                    o[opt] = defaults[opt];
                 } else {
-                    O[opt] = options[opt];
+                    o[opt] = options[opt];
                 }
             }
         }
-        return O;
+        return o;
     }
 
     function clamp(val, min, max) {
