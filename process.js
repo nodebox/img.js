@@ -36,6 +36,14 @@
         return Math.min(max, Math.max(min, val));
     }
 
+    function noise() {
+        return Math.random() * 0.5 + 0.5;
+    }
+
+    function colorDistance(scale, dest, src) {
+        return clamp(scale * dest + (1 - scale) * src, 0, 255);
+    }
+
     function convolve3x3(inData, outData, width, height, kernel, alpha, invert, mono) {
         var x, y, n = width * height * 4,
             idx, r, g, b, a,
