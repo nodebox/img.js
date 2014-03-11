@@ -247,7 +247,7 @@
             maxKernelSize = 13,
             k1, k2, weights,
             kernels = [[1]];
-        
+
         kernelSize = clamp(kernelSize, 3, maxKernelSize);
         k1 = -kernelSize / 2 + (kernelSize % 2 ? 0.5 : 0);
         k2 = kernelSize + k1;
@@ -345,7 +345,7 @@
 
     var process = {
 
-        invert : function (inData, outData, width, height, options) {
+        invert : function (inData, outData, width, height) {
             var i, n = width * height * 4;
 
             for (i = 0; i < n; i += 4) {
@@ -356,7 +356,7 @@
             }
         },
 
-        sepia : function (inData, outData, width, height, options) {
+        sepia : function (inData, outData, width, height) {
             var i, n = width * height * 4,
                 r, g, b;
 
@@ -371,7 +371,7 @@
             }
         },
 
-        solarize : function (inData, outData, width, height, options) {
+        solarize : function (inData, outData, width, height) {
             var i, n = width * height * 4,
                 r, g, b;
 
@@ -389,7 +389,7 @@
 
         brightness : function (inData, outData, width, height, options) {
             options = defaultOptions(options, {
-                brightness : 0,
+                brightness : 1,
                 contrast : 0
             });
 
@@ -420,7 +420,7 @@
             }
         },
 
-        desaturate : function (inData, outData, width, height, options) {
+        desaturate : function (inData, outData, width, height) {
             var i, n = width * height * 4,
                 level;
 
@@ -434,6 +434,7 @@
         },
 
         lighten : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {amount: 0.25});
             var i, n = width * height * 4,
                 mul = 1 + clamp(options.amount, 0, 1);
 
@@ -446,6 +447,7 @@
         },
 
         noise : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {amount: 0.5, strength: 0.5, mono: false});
             var i, n = width * height * 4,
                 rnd, r, g, b,
                 amount = clamp(options.amount, 0, 1),
@@ -480,10 +482,10 @@
             }
         },
 
-        flipv : function (inData, outData, width, height, options) {
+        flipv : function (inData, outData, width, height) {
             var x, y, n = width * height * 4,
                 inPix, outPix;
-            
+
             for (y = 0; y < height; y += 1) {
                 for (x = 0; x < width; x += 1) {
                     inPix = (y * width + x) * 4;
@@ -497,10 +499,10 @@
             }
         },
 
-        fliph : function (inData, outData, width, height, options) {
+        fliph : function (inData, outData, width, height) {
             var x, y, n = width * height * 4,
                 inPix, outPix;
-            
+
             for (y = 0; y < height; y += 1) {
                 for (x = 0; x < width; x += 1) {
                     inPix = (y * width + x) * 4;
@@ -515,10 +517,12 @@
         },
 
         blur : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {kernelSize: 10});
             gaussian(inData, outData, width, height, options.kernelSize);
         },
 
         glow : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {amount: 0.75, kernelSize: 5});
             var i, n = width * height * 4,
                 r, g, b,
                 amount = options.amount,
@@ -550,6 +554,7 @@
 
         // A 3x3 high-pass filter
         sharpen3x3 : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {strength: 1});
             var a = -clamp(options.strength, 0, 1);
             convolve3x3(inData, outData, width, height,
                 [   [a,         a, a],
@@ -559,6 +564,7 @@
 
         // A 5x5 high-pass filter
         sharpen5x5 : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {strength: 1});
             var a = -clamp(options.strength, 0, 1);
             convolve5x5(inData, outData, width, height,
                 [   [a, a,          a, a, a],
@@ -569,7 +575,7 @@
         },
 
         // A 3x3 low-pass mean filter
-        soften3x3 : function (inData, outData, width, height, options) {
+        soften3x3 : function (inData, outData, width, height) {
             var c = 1 / 9;
             convolve3x3(inData, outData, width, height,
                 [   [c, c, c],
@@ -578,7 +584,7 @@
         },
 
         // A 5x5 low-pass mean filter
-        soften5x5 : function (inData, outData, width, height, options) {
+        soften5x5 : function (inData, outData, width, height) {
             var c = 1 / 25;
             convolve5x5(inData, outData, width, height,
                 [   [c, c, c, c, c],
@@ -590,6 +596,7 @@
 
         // A 3x3 Cross edge-detect
         crossedges : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {strength: 1});
             var a = clamp(options.strength, 0, 1) * 5;
             convolve3x3(inData, outData, width, height,
                 [   [ 0, -a, 0],
@@ -600,6 +607,7 @@
 
         // 3x3 directional emboss
         emboss : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {amount: 1, angle: 0});
             var i, n = width * height * 4,
                 amount = options.amount,
                 angle = options.angle,
@@ -632,7 +640,7 @@
 
 
         // A 3x3 Sobel edge detect (similar to Photoshop's)
-        findedges : function (inData, outData, width, height, options) {
+        findedges : function (inData, outData, width, height) {
             var i, n = width * height * 4,
                 gr1, gr2, gg1, gg2, gb1, gb2,
                 data1 = [],
@@ -642,7 +650,7 @@
                 [   [-1, 0, 1],
                     [-2, 0, 2],
                     [-1, 0, 1]]);
-            
+
             convolve3x3(inData, data2, width, height,
                 [   [-1, -2, -1],
                     [ 0,  0,  0],
@@ -671,25 +679,27 @@
         },
 
         // A 3x3 edge enhance
-        edgeenhance3x3 : function (inData, outData, width, height, options) {
+        edgeenhance3x3 : function (inData, outData, width, height) {
+            var c = -1 / 9;
             convolve3x3(inData, outData, width, height,
-                [   [-1 / 9, -1 / 9, -1 / 9],
-                    [-1 / 9,  17 / 9, -1 / 9],
-                    [-1 / 9, -1 / 9, -1 / 9]]);
+                [   [c,      c, c],
+                    [c, 17 / 9, c],
+                    [c,      c, c]]);
         },
 
         // A 5x5 edge enhance
-        edgeenhance5x5 : function (inData, outData, width, height, options) {
+        edgeenhance5x5 : function (inData, outData, width, height) {
+            var c = -1 / 25;
             convolve5x5(inData, outData, width, height,
-                [   [-1 / 25, -1 / 25, -1 / 25, -1 / 25, -1 / 25],
-                    [-1 / 25, -1 / 25, -1 / 25, -1 / 25, -1 / 25],
-                    [-1 / 25, -1 / 25, 49 / 25, -1 / 25, -1 / 25],
-                    [-1 / 25, -1 / 25, -1 / 25, -1 / 25, -1 / 25],
-                    [-1 / 25, -1 / 25, -1 / 25, -1 / 25, -1 / 25]]);
+                [   [c, c,       c, c, c],
+                    [c, c,       c, c, c],
+                    [c, c, 49 / 25, c, c],
+                    [c, c,       c, c, c],
+                    [c, c,       c, c, c]]);
         },
 
         // A 3x3 Laplacian edge-detect
-        laplace3x3 : function (inData, outData, width, height, options) {
+        laplace3x3 : function (inData, outData, width, height) {
             convolve3x3(inData, outData, width, height,
                 [   [-1, -1, -1],
                     [-1,  8, -1],
@@ -698,7 +708,7 @@
         },
 
         // A 5x5 Laplacian edge-detect
-        laplace5x5 : function (inData, outData, width, height, options) {
+        laplace5x5 : function (inData, outData, width, height) {
             convolve5x5(inData, outData, width, height,
                 [   [-1, -1, -1, -1, -1],
                     [-1, -1, -1, -1, -1],
@@ -709,6 +719,7 @@
         },
 
         coloradjust : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {r : 0, g: 0, b: 0});
             var i, n = width * height * 4,
                 r, g, b,
                 ar = clamp(options.r, -1, 1) * 255,
@@ -733,6 +744,7 @@
         },
 
         colorfilter : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {luminosity: false, r: 1, g: 0.5, b: 0});
             var i, n = width * height * 4,
                 r, g, b,
                 luminosity = !!options.luminosity,
@@ -801,6 +813,7 @@
         },
 
         hsl : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {hue: 0.5, saturation: 0.3, lightness: 0.1});
             var i, n = width * height * 4,
                 r, g, b,
                 hue = clamp(options.hue, -1, 1),
@@ -917,6 +930,7 @@
         },
 
         posterize : function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {levels: 5});
             var i, n = width * height * 4,
                 r, g, b,
                 numLevels = clamp(options.levels, 2, 256),
@@ -931,7 +945,7 @@
             }
         },
 
-        removenoise : function (inData, outData, width, height, options) {
+        removenoise : function (inData, outData, width, height) {
             var x, y, n = width * height * 4,
                 r, g, b, c, idx,
                 pyc, pyp, pyn,
@@ -1001,7 +1015,6 @@
                 }
             }
         }
-
     };
 
     // MODULE SUPPORT ///////////////////////////////////////////////////////
