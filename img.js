@@ -1,10 +1,10 @@
 /*jslint nomen:true */
-/*global _, async, Image, document, window, process */
+/*global _, async, console, Image, document, module, define, require, window, process */
 
 (function () {
     'use strict';
 
-    var Canvas, Layer;
+    var Canvas, Layer, img;
 
     function passThrough(canvas, callback) {
         callback(null, canvas);
@@ -19,8 +19,8 @@
         var src = this.img;
         return function (_, callback) {
             var source = new Image(),
-                canvas = document.createElement("canvas"),
-                ctx = canvas.getContext("2d");
+                canvas = document.createElement('canvas'),
+                ctx = canvas.getContext('2d');
 
             source.onload = function () {
                 canvas.width = source.width;
@@ -41,7 +41,7 @@
         if (filter === null) { return passThrough; }
 
         return function (canvas, callback) {
-            var ctx = canvas.getContext("2d"),
+            var ctx = canvas.getContext('2d'),
                 width = canvas.width,
                 height = canvas.height,
                 canvasInData = ctx.getImageData(0, 0, width, height),
@@ -58,12 +58,12 @@
         if (filter === null) { return passThrough; }
 
         return function (canvas, callback) {
-            var ctx = canvas.getContext("2d"),
+            var ctx = canvas.getContext('2d'),
                 width = canvas.width,
                 height = canvas.height,
                 canvasInData = ctx.getImageData(0, 0, width, height),
                 canvasOutData = ctx.createImageData(width, height),
-                worker = new window.Worker("img.worker.control.js");
+                worker = new window.Worker('img.worker.control.js');
 
             worker.onmessage = function (e) {
                 canvasOutData = e.data.result;
@@ -110,5 +110,21 @@
                 }
             });
     };
+
+    img = {};
+    img.Layer = Layer;
+    img.Canvas = Canvas;
+
+    // MODULE SUPPORT ///////////////////////////////////////////////////////
+
+    if (typeof module !== 'undefined') {
+        module.exports = img;
+    } else if (typeof define !== 'undefined') {
+        define('img', ['underscore'], function () {
+            return img;
+        });
+    } else {
+        window.img = img;
+    }
 
 }());
