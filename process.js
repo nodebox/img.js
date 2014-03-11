@@ -36,14 +36,11 @@
         return Math.min(max, Math.max(min, val));
     }
 
-    function convolve3x3(inData, outData, width, height, kernel, progress, alpha, invert, mono) {
-        var idx, r, g, b, a,
+    function convolve3x3(inData, outData, width, height, kernel, alpha, invert, mono) {
+        var x, y, n = width * height * 4,
+            idx, r, g, b, a,
             pyc, pyp, pyn,
             pxc, pxp, pxn,
-            x, y,
-
-            prog, lastProg = 0,
-            n = width * height * 4,
 
             k00 = kernel[0][0], k01 = kernel[0][1], k02 = kernel[0][2],
             k10 = kernel[1][0], k11 = kernel[1][1], k12 = kernel[1][2],
@@ -114,25 +111,15 @@
                 outData[idx + 1] = g;
                 outData[idx + 2] = b;
                 outData[idx + 3] = a;
-
-                if (progress) {
-                    prog = (idx / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         }
     }
 
-    function convolve5x5(inData, outData, width, height, kernel, progress, alpha, invert, mono) {
-        var idx, r, g, b, a,
+    function convolve5x5(inData, outData, width, height, kernel, alpha, invert, mono) {
+        var x, y, n = width * height * 4,
+            idx, r, g, b, a,
             pyc, pyp, pyn, pypp, pynn,
             pxc, pxp, pxn, pxpp, pxnn,
-            x, y,
-
-            prog, lastProg = 0,
-            n = width * height * 4,
 
             k00 = kernel[0][0], k01 = kernel[0][1], k02 = kernel[0][2], k03 = kernel[0][3], k04 = kernel[0][4],
             k10 = kernel[1][0], k11 = kernel[1][1], k12 = kernel[1][2], k13 = kernel[1][3], k14 = kernel[1][4],
@@ -240,27 +227,18 @@
                 outData[idx + 1] = g;
                 outData[idx + 2] = b;
                 outData[idx + 3] = a;
-
-                if (progress) {
-                    prog = (idx / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         }
     }
 
-    function gaussian(inData, outData, width, height, kernelSize, progress) {
-        var r, g, b, a, idx,
-            n = width * height * 4,
-            x, y, i, j,
+    function gaussian(inData, outData, width, height, kernelSize) {
+        var x, y, i, j, n = width * height * 4,
+            r, g, b, a, idx,
             inx, iny, w,
             tmpData = [],
             maxKernelSize = 13,
             k1, k2, weights,
-            kernels = [[1]],
-            prog, lastProg = 0;
+            kernels = [[1]];
         
         kernelSize = clamp(kernelSize, 3, maxKernelSize);
         k1 = -kernelSize / 2 + (kernelSize % 2 ? 0.5 : 0);
@@ -318,17 +296,8 @@
                 tmpData[idx + 1] = g;
                 tmpData[idx + 2] = b;
                 tmpData[idx + 3] = a;
-
-                if (progress) {
-                    prog = (idx / n * 50 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         }
-
-        lastProg = 0;
 
         // pass 2
         for (y = 0; y < height; y += 1) {
@@ -361,13 +330,6 @@
                 outData[idx + 1] = g;
                 outData[idx + 2] = b;
                 outData[idx + 3] = a;
-
-                if (progress) {
-                    prog = 0.5 + (idx / n * 50 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         }
     }
@@ -375,32 +337,20 @@
 
     var process = {
 
-        invert : function (inData, outData, width, height, options, progress) {
-            var i, n = width * height * 4,
-                prog,
-                lastProg = 0;
+        invert : function (inData, outData, width, height, options) {
+            var i, n = width * height * 4;
 
             for (i = 0; i < n; i += 4) {
                 outData[i] = 255 - inData[i];
                 outData[i + 1] = 255 - inData[i + 1];
                 outData[i + 2] = 255 - inData[i + 2];
                 outData[i + 3] = inData[i + 3];
-
-
-                if (progress) {
-                    prog = (i / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
-        sepia : function (inData, outData, width, height, options, progress) {
-            var r, g, b, i,
-                n = width * height * 4,
-                prog,
-                lastProg = 0;
+        sepia : function (inData, outData, width, height, options) {
+            var i, n = width * height * 4,
+                r, g, b;
 
             for (i = 0; i < n; i += 4) {
                 r = inData[i];
@@ -410,21 +360,12 @@
                 outData[i + 1] = (r * 0.349 + g * 0.686 + b * 0.168);
                 outData[i + 2] = (r * 0.272 + g * 0.534 + b * 0.131);
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = (i / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
-        solarize : function (inData, outData, width, height, options, progress) {
-            var r, g, b, i,
-                n = width * height * 4,
-                prog,
-                lastProg = 0;
+        solarize : function (inData, outData, width, height, options) {
+            var i, n = width * height * 4,
+                r, g, b;
 
             for (i = 0; i < n; i += 4) {
                 r = inData[i];
@@ -435,28 +376,19 @@
                 outData[i + 1] = g > 127 ? 255 - g : g;
                 outData[i + 2] = b > 127 ? 255 - b : b;
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = (i / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
-        brightness : function (inData, outData, width, height, options, progress) {
+        brightness : function (inData, outData, width, height, options) {
             options = defaultOptions(options, {
                 brightness : 0,
                 contrast : 0
             });
 
             var i, n = width * height * 4,
+                r, g, b,
                 contrast = clamp(options.contrast, -1, 1) / 2,
                 brightness = 1 + clamp(options.brightness, -1, 1),
-                prog,
-                lastProg = 0,
-                r, g, b,
                 brightMul = brightness < 0 ? -brightness : brightness,
                 brightAdd = brightness < 0 ? 0 : brightness,
                 contrastAdd;
@@ -477,20 +409,11 @@
                 outData[i + 1] = g;
                 outData[i + 2] = b;
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = (i / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
-        desaturate : function (inData, outData, width, height, options, progress) {
+        desaturate : function (inData, outData, width, height, options) {
             var i, n = width * height * 4,
-                prog,
-                lastProg = 0,
                 level;
 
             for (i = 0; i < n; i += 4) {
@@ -499,20 +422,11 @@
                 outData[i + 1] = level;
                 outData[i + 2] = level;
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = (i / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
-        lighten : function (inData, outData, width, height, options, progress) {
+        lighten : function (inData, outData, width, height, options) {
             var i, n = width * height * 4,
-                prog,
-                lastProg = 0,
                 mul = 1 + clamp(options.amount, 0, 1);
 
             for (i = 0; i < n; i += 4) {
@@ -520,25 +434,16 @@
                 outData[i + 1] = inData[i + 1] * mul;
                 outData[i + 2] = inData[i + 2] * mul;
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = (i / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
-        noise : function (inData, outData, width, height, options, progress) {
+        noise : function (inData, outData, width, height, options) {
             var i, n = width * height * 4,
-                prog,
-                lastProg = 0,
+                rnd, r, g, b,
                 amount = clamp(options.amount, 0, 1),
                 strength = clamp(options.strength, 0, 1),
                 mono = !!options.mono,
-                random = Math.random,
-                rnd, r, g, b;
+                random = Math.random;
 
             for (i = 0; i < n; i += 4) {
                 r = inData[i];
@@ -564,21 +469,12 @@
                 outData[i + 1] = g;
                 outData[i + 2] = b;
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = (i / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
-        flipv : function (inData, outData, width, height, options, progress) {
-            var inPix, outPix,
-                n = width * height * 4,
-                prog, lastProg = 0,
-                x, y;
+        flipv : function (inData, outData, width, height, options) {
+            var x, y, n = width * height * 4,
+                inPix, outPix;
             
             for (y = 0; y < height; y += 1) {
                 for (x = 0; x < width; x += 1) {
@@ -589,22 +485,14 @@
                     outData[outPix + 1] = inData[inPix + 1];
                     outData[outPix + 2] = inData[inPix + 2];
                     outData[outPix + 3] = inData[inPix + 3];
-
-                    if (progress) {
-                        prog = (inPix / n * 100 >> 0) / 100;
-                        if (prog > lastProg) {
-                            lastProg = progress(prog);
-                        }
-                    }
                 }
             }
         },
 
-        fliph : function (inData, outData, width, height, options, progress) {
-            var inPix, outPix,
-                n = width * height * 4,
-                prog, lastProg = 0,
-                x, y;
+        fliph : function (inData, outData, width, height, options) {
+            var x, y, n = width * height * 4,
+                inPix, outPix;
+            
             for (y = 0; y < height; y += 1) {
                 for (x = 0; x < width; x += 1) {
                     inPix = (y * width + x) * 4;
@@ -614,37 +502,21 @@
                     outData[outPix + 1] = inData[inPix + 1];
                     outData[outPix + 2] = inData[inPix + 2];
                     outData[outPix + 3] = inData[inPix + 3];
-
-                    if (progress) {
-                        prog = (inPix / n * 100 >> 0) / 100;
-                        if (prog > lastProg) {
-                            lastProg = progress(prog);
-                        }
-                    }
                 }
             }
         },
 
-        blur : function (inData, outData, width, height, options, progress) {
-            gaussian(inData, outData, width, height, options.kernelSize, progress);
+        blur : function (inData, outData, width, height, options) {
+            gaussian(inData, outData, width, height, options.kernelSize);
         },
 
-        glow : function (inData, outData, width, height, options, progress) {
+        glow : function (inData, outData, width, height, options) {
             var i, n = width * height * 4,
                 r, g, b,
                 amount = options.amount,
-                tmpData = [],
-                gaussProgress,
-                prog, lastProg = 0;
+                tmpData = [];
 
-            if (progress) {
-                gaussProgress = function (p) {
-                    progress(p * 0.8);
-                    return p;
-                };
-            }
-
-            gaussian(inData, tmpData, width, height, options.kernelSize, gaussProgress);
+            gaussian(inData, tmpData, width, height, options.kernelSize);
 
             for (i = 0; i < n; i += 4) {
                 r = inData[i]   + tmpData[i]   * amount;
@@ -657,87 +529,74 @@
                 outData[i + 1] = g;
                 outData[i + 2] = b;
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = 0.8 + (i / n * 100 >> 0) / 100 * 0.2;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
-        convolve3x3 : function (inData, outData, width, height, options, progress) {
-            convolve3x3(inData, outData, width, height, options.kernel, progress);
+        convolve3x3 : function (inData, outData, width, height, options) {
+            convolve3x3(inData, outData, width, height, options.kernel);
         },
 
-        convolve5x5 : function (inData, outData, width, height, options, progress) {
-            convolve3x3(inData, outData, width, height, options.kernel, progress);
+        convolve5x5 : function (inData, outData, width, height, options) {
+            convolve3x3(inData, outData, width, height, options.kernel);
         },
 
         // A 3x3 high-pass filter
-        sharpen3x3 : function (inData, outData, width, height, options, progress) {
+        sharpen3x3 : function (inData, outData, width, height, options) {
             var a = -clamp(options.strength, 0, 1);
             convolve3x3(inData, outData, width, height,
                 [   [a,         a, a],
                     [a, 1 - a * 8, a],
-                    [a,         a, a]],
-                progress);
+                    [a,         a, a]]);
         },
 
         // A 5x5 high-pass filter
-        sharpen5x5 : function (inData, outData, width, height, options, progress) {
+        sharpen5x5 : function (inData, outData, width, height, options) {
             var a = -clamp(options.strength, 0, 1);
             convolve5x5(inData, outData, width, height,
                 [   [a, a,          a, a, a],
                     [a, a,          a, a, a],
                     [a, a, 1 - a * 24, a, a],
                     [a, a,          a, a, a],
-                    [a, a,          a, a, a]],
-                progress);
+                    [a, a,          a, a, a]]);
         },
 
         // A 3x3 low-pass mean filter
-        soften3x3 : function (inData, outData, width, height, options, progress) {
+        soften3x3 : function (inData, outData, width, height, options) {
             var c = 1 / 9;
             convolve3x3(inData, outData, width, height,
                 [   [c, c, c],
                     [c, c, c],
-                    [c, c, c]],
-                progress);
+                    [c, c, c]]);
         },
 
         // A 5x5 low-pass mean filter
-        soften5x5 : function (inData, outData, width, height, options, progress) {
+        soften5x5 : function (inData, outData, width, height, options) {
             var c = 1 / 25;
             convolve5x5(inData, outData, width, height,
                 [   [c, c, c, c, c],
                     [c, c, c, c, c],
                     [c, c, c, c, c],
                     [c, c, c, c, c],
-                    [c, c, c, c, c]],
-                progress);
+                    [c, c, c, c, c]]);
         },
 
         // A 3x3 Cross edge-detect
-        crossedges : function (inData, outData, width, height, options, progress) {
+        crossedges : function (inData, outData, width, height, options) {
             var a = clamp(options.strength, 0, 1) * 5;
             convolve3x3(inData, outData, width, height,
                 [   [ 0, -a, 0],
                     [-a,  0, a],
                     [ 0,  a, 0]],
-                progress,
                 false, true);
         },
 
         // 3x3 directional emboss
-        emboss : function (inData, outData, width, height, options, progress) {
-            var i,
+        emboss : function (inData, outData, width, height, options) {
+            var i, n = width * height * 4,
                 amount = options.amount,
                 angle = options.angle,
                 x = Math.cos(-angle) * amount,
                 y = Math.sin(-angle) * amount,
-                n = width * height * 4,
 
                 a00 = -x - y,
                 a10 = -x,
@@ -748,18 +607,7 @@
                 a12 = x,
                 a22 = y + x,
 
-                tmpData = [],
-
-                prog,
-                lastProg = 0,
-                convProgress;
-
-            if (progress) {
-                convProgress = function (p) {
-                    progress(p * 0.5);
-                    return p;
-                };
-            }
+                tmpData = [];
 
             convolve3x3(inData, tmpData, width, height,
                 [   [a00, a01, a02],
@@ -771,36 +619,16 @@
                 outData[i + 1] = 128 + tmpData[i + 1];
                 outData[i + 2] = 128 + tmpData[i + 2];
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = 0.5 + (i / n * 100 >> 0) / 100 * 0.5;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
 
         // A 3x3 Sobel edge detect (similar to Photoshop's)
-        findedges : function (inData, outData, width, height, options, progress) {
+        findedges : function (inData, outData, width, height, options) {
             var i, n = width * height * 4,
                 gr1, gr2, gg1, gg2, gb1, gb2,
                 data1 = [],
-                data2 = [],
-                prog, lastProg = 0,
-                convProgress1, convProgress2;
-
-            if (progress) {
-                convProgress1 = function (p) {
-                    progress(p * 0.4);
-                    return p;
-                };
-                convProgress2 = function (p) {
-                    progress(0.4 + p * 0.4);
-                    return p;
-                };
-            }
+                data2 = [];
 
             convolve3x3(inData, data1, width, height,
                 [   [-1, 0, 1],
@@ -831,62 +659,50 @@
                 outData[i + 1] = 255 - (gg1 + gg2) * 0.8;
                 outData[i + 2] = 255 - (gb1 + gb2) * 0.8;
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = 0.8 + (i / n * 100 >> 0) / 100 * 0.2;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
         // A 3x3 edge enhance
-        edgeenhance3x3 : function (inData, outData, width, height, options, progress) {
+        edgeenhance3x3 : function (inData, outData, width, height, options) {
             convolve3x3(inData, outData, width, height,
                 [   [-1 / 9, -1 / 9, -1 / 9],
                     [-1 / 9,  17 / 9, -1 / 9],
-                    [-1 / 9, -1 / 9, -1 / 9]],
-                progress);
+                    [-1 / 9, -1 / 9, -1 / 9]]);
         },
 
         // A 5x5 edge enhance
-        edgeenhance5x5 : function (inData, outData, width, height, options, progress) {
+        edgeenhance5x5 : function (inData, outData, width, height, options) {
             convolve5x5(inData, outData, width, height,
                 [   [-1 / 25, -1 / 25, -1 / 25, -1 / 25, -1 / 25],
                     [-1 / 25, -1 / 25, -1 / 25, -1 / 25, -1 / 25],
                     [-1 / 25, -1 / 25, 49 / 25, -1 / 25, -1 / 25],
                     [-1 / 25, -1 / 25, -1 / 25, -1 / 25, -1 / 25],
-                    [-1 / 25, -1 / 25, -1 / 25, -1 / 25, -1 / 25]],
-                progress);
+                    [-1 / 25, -1 / 25, -1 / 25, -1 / 25, -1 / 25]]);
         },
 
         // A 3x3 Laplacian edge-detect
-        laplace3x3 : function (inData, outData, width, height, options, progress) {
+        laplace3x3 : function (inData, outData, width, height, options) {
             convolve3x3(inData, outData, width, height,
                 [   [-1, -1, -1],
                     [-1,  8, -1],
                     [-1, -1, -1]],
-                progress,
                 false, true, true);
         },
 
         // A 5x5 Laplacian edge-detect
-        laplace5x5 : function (inData, outData, width, height, options, progress) {
+        laplace5x5 : function (inData, outData, width, height, options) {
             convolve5x5(inData, outData, width, height,
                 [   [-1, -1, -1, -1, -1],
                     [-1, -1, -1, -1, -1],
                     [-1, -1, 24, -1, -1],
                     [-1, -1, -1, -1, -1],
                     [-1, -1, -1, -1, -1]],
-                progress,
                 false, true, true);
         },
 
-        coloradjust : function (inData, outData, width, height, options, progress) {
+        coloradjust : function (inData, outData, width, height, options) {
             var i, n = width * height * 4,
                 r, g, b,
-                prog, lastProg = 0,
                 ar = clamp(options.r, -1, 1) * 255,
                 ag = clamp(options.g, -1, 1) * 255,
                 ab = clamp(options.b, -1, 1) * 255;
@@ -905,21 +721,13 @@
                 outData[i + 1] = g;
                 outData[i + 2] = b;
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = (i / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
-        colorfilter : function (inData, outData, width, height, options, progress) {
+        colorfilter : function (inData, outData, width, height, options) {
             var i, n = width * height * 4,
                 r, g, b,
                 luminosity = !!options.luminosity,
-                prog, lastProg = 0,
                 min, max, h, l, h1, chroma, tmp, m,
                 ar = clamp(options.r, 0, 1),
                 ag = clamp(options.g, 0, 1),
@@ -981,17 +789,10 @@
                 outData[i + 1] = g * 255;
                 outData[i + 2] = b * 255;
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = (i / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
-        hsl : function (inData, outData, width, height, options, progress) {
+        hsl : function (inData, outData, width, height, options) {
             var i, n = width * height * 4,
                 r, g, b,
                 hue = clamp(options.hue, -1, 1),
@@ -1000,8 +801,7 @@
                 satMul = 1 + saturation * (saturation < 0 ? 1 : 2),
                 lightMul = lightness < 0 ? 1 + lightness : 1 - lightness,
                 lightAdd = lightness < 0 ? 0 : lightness * 255,
-                vs, ms, vm, h, s, l, v, m, vmh, sextant,
-                prog, lastProg = 0;
+                vs, ms, vm, h, s, l, v, m, vmh, sextant;
 
             hue = (hue * 6) % 6;
 
@@ -1105,50 +905,30 @@
                 outData[i + 1] = g;
                 outData[i + 2] = b;
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = (i / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
         },
 
-        posterize : function (inData, outData, width, height, options, progress) {
+        posterize : function (inData, outData, width, height, options) {
             var i, n = width * height * 4,
+                r, g, b,
                 numLevels = clamp(options.levels, 2, 256),
                 numAreas = 256 / numLevels,
-                numValues = 256 / (numLevels - 1),
-                r, g, b,
-                prog, lastProg = 0;
+                numValues = 256 / (numLevels - 1);
 
             for (i = 0; i < n; i += 4) {
-
                 outData[i] = numValues * ((inData[i] / numAreas) >> 0);
                 outData[i + 1] = numValues * ((inData[i + 1] / numAreas) >> 0);
                 outData[i + 2] = numValues * ((inData[i + 2] / numAreas) >> 0);
-
                 outData[i + 3] = inData[i + 3];
-
-                if (progress) {
-                    prog = (i / n * 100 >> 0) / 100;
-                    if (prog > lastProg) {
-                        lastProg = progress(prog);
-                    }
-                }
             }
-
         },
 
-        removenoise : function (inData, outData, width, height, options, progress) {
-            var r, g, b, c, y, x, idx,
+        removenoise : function (inData, outData, width, height, options) {
+            var x, y, n = width * height * 4,
+                r, g, b, c, idx,
                 pyc, pyp, pyn,
                 pxc, pxp, pxn,
-                minR, minG, minB, maxR, maxG, maxB,
-                n, prog, lastProg = 0;
-
-            n = width * height * 4;
+                minR, minG, minB, maxR, maxG, maxB;
 
             for (y = 0; y < height; y += 1) {
                 pyc = y * width * 4;
@@ -1210,13 +990,6 @@
                     outData[idx + 1] = g;
                     outData[idx + 2] = b;
                     outData[idx + 3] = inData[idx + 3];
-
-                    if (progress) {
-                        prog = (idx / n * 100 >> 0) / 100;
-                        if (prog > lastProg) {
-                            lastProg = progress(prog);
-                        }
-                    }
                 }
             }
         }
