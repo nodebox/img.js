@@ -25,6 +25,7 @@
     Layer = function (img) {
         this.img = img;
         this.opacity = 1.0;
+        this.blendmode = "normal";
         this.filters = [];
     };
 
@@ -160,10 +161,15 @@
         canvas.height = layerImages[0].height;
 
         for (i = 0; i < layerImages.length; i += 1) {
+            ctx.save();
             if (layers[i].opacity !== 1) {
                 ctx.globalAlpha = layers[i].opacity;
             }
+            if (layers[i].blendmode !== "normal") {
+                ctx.globalCompositeOperation = layers[i].blendmode;
+            }
             ctx.drawImage(layerImages[i], 0, 0);
+            ctx.restore();
         }
         callback(canvas);
     };
