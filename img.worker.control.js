@@ -4,16 +4,23 @@ importScripts("process.js");
 
 self.onmessage = function (e) {
     'use strict';
-    
-    var canvasInData = e.data.inData,
-        canvasOutData = e.data.outData,
-        inData = canvasInData.data,
-        outData = canvasOutData.data,
-        filter = e.data.filter,
+
+    var i, filter, tmpData,
+        inData = e.data.inData,
+        outData = e.data.outData,
+        filters = e.data.filters,
         width = e.data.width,
         height = e.data.height;
 
-    process[filter.name](inData, outData, width, height, filter.options);
+    for (i = 0; i < filters.length; i += 1) {
+        if (i > 0) {
+            tmpData = inData;
+            inData = outData;
+            outData = tmpData;
+        }
+        filter = filters[i];
+        process[filter.name](inData.data, outData.data, width, height, filter.options);
+    }
 
-    self.postMessage({ result: canvasOutData });
+    self.postMessage({ result: outData });
 };

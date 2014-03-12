@@ -20,11 +20,15 @@
 
     Layer = function (img) {
         this.img = img;
-        this.filter = null;
+        this.filters = [];
     };
 
-    Layer.prototype.setFilter = function (filter) {
-        this.filter = filter;
+    Layer.prototype.addFilter = function (filter, options) {
+        this.filters.push({
+            layer: this,
+            name: filter,
+            options: options
+        });
     };
 
     Canvas = function () {
@@ -61,25 +65,33 @@
     };
 
     CanvasRenderer._processNoWorker = function (layer) {
-        var filter = layer.filter;
-        if (filter === null) { return passThrough; }
+        if (layer.filters.length === 0) { return passThrough; }
 
         return function (canvas, callback) {
-            var ctx = canvas.getContext('2d'),
+            var i, filter, tmpData,
+                ctx = canvas.getContext('2d'),
                 width = canvas.width,
                 height = canvas.height,
-                canvasInData = ctx.getImageData(0, 0, width, height),
-                canvasOutData = createImageData(ctx, width, height);
+                inData = ctx.getImageData(0, 0, width, height),
+                outData = createImageData(ctx, width, height);
 
-            process[filter.name](canvasInData.data, canvasOutData.data, width, height, filter.options);
-            ctx.putImageData(canvasOutData, 0, 0);
+            for (i = 0; i < layer.filters.length; i += 1) {
+                if (i > 0) {
+                    tmpData = inData;
+                    inData = outData;
+                    outData = tmpData;
+                }
+                filter = layer.filters[i];
+                process[filter.name](inData.data, outData.data, width, height, filter.options);
+            }
+
+            ctx.putImageData(outData, 0, 0);
             callback(null, canvas);
         };
     };
 
     CanvasRenderer._processWithWorker = function (layer) {
-        var filter = layer.filter;
-        if (filter === null) { return passThrough; }
+        if (layer.filters.length === 0) { return passThrough; }
 
         return function (canvas, callback) {
             var ctx = canvas.getContext('2d'),
@@ -99,7 +111,7 @@
                                  outData: canvasOutData,
                                  width: width,
                                  height: height,
-                                 filter: filter });
+                                 filters: layer.filters });
         };
     };
 
