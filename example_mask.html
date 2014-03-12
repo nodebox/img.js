@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>img.js - Example mask</title>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/async/0.2.7/async.min.js"></script>
+    <script src="process.js"></script>
+    <script src="img.js"></script>
+    <script>
+        window.onload = function () {
+            var layer, mask,
+                canvas = new img.Canvas();
+            layer = canvas.addLayer("images/img1.jpg");
+            layer.addFilter("coloradjust", {r: 0.25, g: 0.25});
+            layer = canvas.addLayer("images/img2.jpg");
+            mask = layer.mask.addLayer("images/disc.jpg");
+            mask.addFilter("invert");
+            layer.addFilter("coloradjust", {r: 0.30, g: 0.10, b: 0.25});
+            layer.opacity = 0.5;
+
+            canvas.render(function (c) {
+                document.body.appendChild(c);
+            });
+        };
+    </script>
+</head>
+<body id="root">
+</body>
+</html>
