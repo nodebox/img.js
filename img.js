@@ -6,6 +6,10 @@
 
     var Canvas, CanvasRenderer, Layer, img;
 
+    function clamp(val, min, max) {
+        return Math.min(max, Math.max(min, val));
+    }
+
     function passThrough(canvas, callback) {
         callback(null, canvas);
     }
@@ -20,7 +24,12 @@
 
     Layer = function (img) {
         this.img = img;
+        this.opacity = 1.0;
         this.filters = [];
+    };
+
+    Layer.prototype.setOpacity = function (opacity) {
+        this.opacity = clamp(opacity, 0, 1);
     };
 
     Layer.prototype.addFilter = function (filter, options) {
