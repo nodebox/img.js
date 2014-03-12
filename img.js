@@ -124,6 +124,16 @@
         };
     };
 
+    CanvasRenderer.toImage = function () {
+        return function (canvas, callback) {
+            var img = new Image();
+            img.width = canvas.width;
+            img.height = canvas.height;
+            img.src = canvas.toDataURL();
+            callback(null, img);
+        };
+    };
+
     if (!window.Worker) {
         CanvasRenderer.processImage = CanvasRenderer._processNoWorker;
     } else {
@@ -132,16 +142,37 @@
 
     CanvasRenderer.processLayer = function (layer, callback) {
         async.compose(
+            CanvasRenderer.toImage(),
             CanvasRenderer.processImage(layer),
             CanvasRenderer.load(layer)
         )(null, callback);
     };
 
+    CanvasRenderer.composite = function (layers, layerImages, callback) {
+        if (!layerImages) { callback(null); }
+        if (layerImages.length === 0) { callback(null); }
+
+        var i,
+            canvas = document.createElement('canvas'),
+            ctx = canvas.getContext('2d');
+
+        canvas.width = layerImages[0].width;
+        canvas.height = layerImages[0].height;
+
+        for (i = 0; i < layerImages.length; i += 1) {
+            if (layers[i].opacity !== 1) {
+                ctx.globalAlpha = layers[i].opacity;
+            }
+            ctx.drawImage(layerImages[i], 0, 0);
+        }
+        callback(canvas);
+    };
+
     CanvasRenderer.render = function (canvas, callback) {
         async.map(canvas.layers,
-              CanvasRenderer.processLayer, function (err, result) {
+              CanvasRenderer.processLayer, function (err, layerImages) {
                 if (callback) {
-                    callback(result);
+                    CanvasRenderer.composite(canvas.layers, layerImages, callback);
                 }
             });
     };

@@ -15,12 +15,10 @@
             layer = canvas.addLayer("images/img2.jpg");
             layer.addFilter("coloradjust", {r: 0.30, g: -0.10, b: -0.15});
             layer.addFilter("invert");
+            layer.opacity = 0.3;
 
-            canvas.render(function (result) {
-                var i;
-                for (i = 0; i < result.length; i += 1) {
-                    document.body.appendChild(result[i]);
-                }
+            canvas.render(function (c) {
+                document.body.appendChild(c);
             });
         };
     </script>
