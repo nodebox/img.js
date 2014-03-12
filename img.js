@@ -4,7 +4,7 @@
 (function () {
     'use strict';
 
-    var Canvas, Layer, img;
+    var Canvas, CanvasRenderer, Layer, img;
 
     function passThrough(canvas, callback) {
         callback(null, canvas);
@@ -15,8 +15,28 @@
         this.filter = null;
     };
 
-    Layer.prototype.load = function () {
-        var src = this.img;
+    Layer.prototype.setFilter = function (filter) {
+        this.filter = filter;
+    };
+
+    Canvas = function () {
+        this.layers = [];
+    };
+
+    Canvas.prototype.addLayer = function (filename) {
+        var layer = new Layer(filename);
+        this.layers.push(layer);
+        return layer;
+    };
+
+    Canvas.prototype.render = function (callback) {
+        CanvasRenderer.render(this, callback);
+    };
+
+    CanvasRenderer = {};
+
+    CanvasRenderer.load = function (layer) {
+        var src = layer.img;
         return function (_, callback) {
             var source = new Image(),
                 canvas = document.createElement('canvas'),
@@ -32,12 +52,8 @@
         };
     };
 
-    Layer.prototype.setFilter = function (filter) {
-        this.filter = filter;
-    };
-
-    Layer.prototype._processNoWorker = function () {
-        var filter = this.filter;
+    CanvasRenderer._processNoWorker = function (layer) {
+        var filter = layer.filter;
         if (filter === null) { return passThrough; }
 
         return function (canvas, callback) {
@@ -53,8 +69,8 @@
         };
     };
 
-    Layer.prototype._processWithWorker = function () {
-        var filter = this.filter;
+    CanvasRenderer._processWithWorker = function (layer) {
+        var filter = layer.filter;
         if (filter === null) { return passThrough; }
 
         return function (canvas, callback) {
@@ -80,31 +96,21 @@
     };
 
     if (!window.Worker) {
-        Layer.prototype.processImage = Layer.prototype._processNoWorker;
+        CanvasRenderer.processImage = CanvasRenderer._processNoWorker;
     } else {
-        Layer.prototype.processImage = Layer.prototype._processWithWorker;
+        CanvasRenderer.processImage = CanvasRenderer._processWithWorker;
     }
 
-    Canvas = function () {
-        this.layers = [];
-    };
-
-    Canvas.prototype.addLayer = function (filename) {
-        var layer = new Layer(filename);
-        this.layers.push(layer);
-        return layer;
-    };
-
-    Canvas.prototype.processLayer = function (layer, callback) {
+    CanvasRenderer.processLayer = function (layer, callback) {
         async.compose(
-            layer.processImage(),
-            layer.load()
+            CanvasRenderer.processImage(layer),
+            CanvasRenderer.load(layer)
         )(null, callback);
     };
 
-    Canvas.prototype.render = function (callback) {
-        async.map(this.layers,
-              this.processLayer, function (err, result) {
+    CanvasRenderer.render = function (canvas, callback) {
+        async.map(canvas.layers,
+              CanvasRenderer.processLayer, function (err, result) {
                 if (callback) {
                     callback(result);
                 }
