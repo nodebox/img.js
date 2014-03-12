@@ -10,6 +10,14 @@
         callback(null, canvas);
     }
 
+    function createImageData(ctx, width, height) {
+        if (ctx.createImageData) {
+            return ctx.createImageData(width, height);
+        } else {
+            return ctx.getImageData(0, 0, width, height);
+        }
+    }
+
     Layer = function (img) {
         this.img = img;
         this.filter = null;
@@ -61,7 +69,7 @@
                 width = canvas.width,
                 height = canvas.height,
                 canvasInData = ctx.getImageData(0, 0, width, height),
-                canvasOutData = ctx.createImageData(width, height);
+                canvasOutData = createImageData(ctx, width, height);
 
             process[filter.name](canvasInData.data, canvasOutData.data, width, height, filter.options);
             ctx.putImageData(canvasOutData, 0, 0);
@@ -78,7 +86,7 @@
                 width = canvas.width,
                 height = canvas.height,
                 canvasInData = ctx.getImageData(0, 0, width, height),
-                canvasOutData = ctx.createImageData(width, height),
+                canvasOutData = createImageData(ctx, width, height),
                 worker = new window.Worker('img.worker.control.js');
 
             worker.onmessage = function (e) {
