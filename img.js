@@ -26,6 +26,7 @@
         this.img = img;
         this.opacity = 1.0;
         this.blendmode = "normal";
+        this.mask = null;
         this.filters = [];
     };
 
@@ -57,8 +58,7 @@
 
     CanvasRenderer = {};
 
-    CanvasRenderer.load = function (layer) {
-        var src = layer.img;
+    CanvasRenderer.load = function (src) {
         return function (_, callback) {
             var source = new Image(),
                 canvas = document.createElement('canvas'),
@@ -74,8 +74,8 @@
         };
     };
 
-    CanvasRenderer._processNoWorker = function (layer) {
-        if (layer.filters.length === 0) { return passThrough; }
+    CanvasRenderer._processNoWorker = function (filters) {
+        if (filters.length === 0) { return passThrough; }
 
         return function (canvas, callback) {
             var i, filter, tmpData,
@@ -85,13 +85,13 @@
                 inData = ctx.getImageData(0, 0, width, height),
                 outData = createImageData(ctx, width, height);
 
-            for (i = 0; i < layer.filters.length; i += 1) {
+            for (i = 0; i < filters.length; i += 1) {
                 if (i > 0) {
                     tmpData = inData;
                     inData = outData;
                     outData = tmpData;
                 }
-                filter = layer.filters[i];
+                filter = filters[i];
                 process[filter.name](inData.data, outData.data, width, height, filter.options);
             }
 
@@ -100,8 +100,8 @@
         };
     };
 
-    CanvasRenderer._processWithWorker = function (layer) {
-        if (layer.filters.length === 0) { return passThrough; }
+    CanvasRenderer._processWithWorker = function (filters) {
+        if (filters.length === 0) { return passThrough; }
 
         return function (canvas, callback) {
             var ctx = canvas.getContext('2d'),
@@ -121,7 +121,7 @@
                                  outData: canvasOutData,
                                  width: width,
                                  height: height,
-                                 filters: layer.filters });
+                                 filters: filters });
         };
     };
 
@@ -141,10 +141,26 @@
         CanvasRenderer.processImage = CanvasRenderer._processWithWorker;
     }
 
+    CanvasRenderer.processMask = function (mask) {
+        if (mask === null) { return passThrough; }
+        return function (canvas, callback) {
+            var canvas2 = new Canvas(),
+                layer = canvas2.addLayer(mask);
+            layer.addFilter("luminancebw");
+            canvas2.render(function (c) {
+                var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
+                    maskFilter = {name: "mask", options: {data: data, x: 0, y: 0, width: c.width, height: c.height} },
+                    fn = CanvasRenderer.processImage([maskFilter]);
+                fn(canvas, callback);
+            });
+        };
+    };
+
     CanvasRenderer.processLayer = function (layer, callback) {
         async.compose(
-            CanvasRenderer.processImage(layer),
-            CanvasRenderer.load(layer)
+            CanvasRenderer.processImage(layer.filters),
+            CanvasRenderer.processMask(layer.mask),
+            CanvasRenderer.load(layer.img)
         )(null, callback);
     };
 

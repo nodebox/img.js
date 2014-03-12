@@ -1014,6 +1014,33 @@
                     outData[idx + 3] = inData[idx + 3];
                 }
             }
+        },
+
+        luminancebw : function (inData, outData, width, height) {
+            var i, n = width * height * 4,
+                lum;
+
+            for (i = 0; i < n; i += 4) {
+                lum = inData[i] * 0.2125 + inData[i + 1] * 0.7154 + inData[i + 2] * 0.0721;
+                outData[i] = lum;
+                outData[i + 1] = lum;
+                outData[i + 2] = lum;
+                outData[i + 3] = inData[i + 3];
+            }
+        },
+
+        mask : function (inData, outData, width, height, options) {
+            var i, n = width * height * 4,
+                data = options.data;
+
+            // todo: consider the masking image's dimensions and position.
+
+            for (i = 0; i < n; i += 4) {
+                outData[i] = inData[i];
+                outData[i + 1] = inData[i + 1];
+                outData[i + 2] = inData[i + 2];
+                outData[i + 3] = inData[i + 3] * data[i] / 255 * data[i + 3] / 255;
+            }
         }
     };
 
