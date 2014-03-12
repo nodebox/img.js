@@ -143,7 +143,6 @@
 
     CanvasRenderer.processLayer = function (layer, callback) {
         async.compose(
-            CanvasRenderer.toImage(),
             CanvasRenderer.processImage(layer),
             CanvasRenderer.load(layer)
         )(null, callback);
