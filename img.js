@@ -26,7 +26,7 @@
         this.img = img;
         this.opacity = 1.0;
         this.blendmode = "normal";
-        this.mask = null;
+        this.mask = new Canvas();
         this.filters = [];
     };
 
@@ -142,16 +142,18 @@
     }
 
     CanvasRenderer.processMask = function (mask) {
-        if (mask === null) { return passThrough; }
+        if (mask.layers.length === 0) { return passThrough; }
         return function (canvas, callback) {
-            var canvas2 = new Canvas(),
-                layer = canvas2.addLayer(mask);
-            layer.addFilter("luminancebw");
-            canvas2.render(function (c) {
+            mask.render(function (c) {
                 var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
-                    maskFilter = {name: "mask", options: {data: data, x: 0, y: 0, width: c.width, height: c.height} },
-                    fn = CanvasRenderer.processImage([maskFilter]);
-                fn(canvas, callback);
+                    bwFilter = {name: "luminancebw"},
+                    fn = CanvasRenderer.processImage([bwFilter]);
+                fn(c, function (err, canv) {
+                   var data = canv.getContext('2d').getImageData(0, 0, canv.width, canv.height).data,
+                       maskFilter = {name: "mask", options: {data: data, x: 0, y: 0, width: c.width, height: c.height} },
+                       fn = CanvasRenderer.processImage([maskFilter]);
+                   fn(canvas, callback);
+                });
             });
         };
     };
