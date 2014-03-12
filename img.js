@@ -144,16 +144,11 @@
     CanvasRenderer.processMask = function (mask) {
         if (mask.layers.length === 0) { return passThrough; }
         return function (canvas, callback) {
-            mask.render(function (c) {
+            CanvasRenderer.renderBW(mask, function (c) {
                 var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
-                    bwFilter = {name: "luminancebw"},
-                    fn = CanvasRenderer.processImage([bwFilter]);
-                fn(c, function (err, canv) {
-                   var data = canv.getContext('2d').getImageData(0, 0, canv.width, canv.height).data,
-                       maskFilter = {name: "mask", options: {data: data, x: 0, y: 0, width: c.width, height: c.height} },
-                       fn = CanvasRenderer.processImage([maskFilter]);
-                   fn(canvas, callback);
-                });
+                    maskFilter = {name: "mask", options: {data: data, x: 0, y: 0, width: c.width, height: c.height} },
+                    fn = CanvasRenderer.processImage([maskFilter]);
+                fn(canvas, callback);
             });
         };
     };
@@ -198,6 +193,17 @@
                     CanvasRenderer.composite(canvas.layers, layerImages, callback);
                 }
             });
+    };
+
+    CanvasRenderer.renderBW = function (canvas, callback) {
+        CanvasRenderer.render(canvas, function (c) {
+            var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
+                bwFilter = {name: "luminancebw"},
+                fn = CanvasRenderer.processImage([bwFilter]);
+            fn(c, function (err, c) {
+                callback(c);
+            });
+        });
     };
 
     img = {};
