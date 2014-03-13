@@ -524,7 +524,7 @@
         outData[pix + 2] = rgb[2];
     }
 
-    function _blend(inData, outData, width, height, options, progress) {
+    function _blend(inData, outData, width, height, options) {
         var pix, pixIn, x, y, a, a2,
             w = Math.min(width, options.width),
             h = Math.min(height, options.height),
@@ -560,9 +560,9 @@
     }
 
     function _wrap(type) {
-        return function (inData, outData, width, height, options, progress) {
+        return function (inData, outData, width, height, options) {
             options.type = type;
-            _blend(inData, outData, width, height, options, progress);
+            _blend(inData, outData, width, height, options);
         };
     }
 
