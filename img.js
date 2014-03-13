@@ -61,14 +61,14 @@
     CanvasRenderer.load = function (src) {
         return function (_, callback) {
             var source = new Image(),
-                canvas = document.createElement('canvas'),
-                ctx = canvas.getContext('2d');
+                dCanvas = document.createElement('canvas'),
+                ctx = dCanvas.getContext('2d');
 
             source.onload = function () {
-                canvas.width = source.width;
-                canvas.height = source.height;
-                ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
-                callback(null, canvas);
+                dCanvas.width = source.width;
+                dCanvas.height = source.height;
+                ctx.drawImage(source, 0, 0, dCanvas.width, dCanvas.height);
+                callback(null, dCanvas);
             };
             source.src = src;
         };
@@ -77,11 +77,11 @@
     CanvasRenderer._processNoWorker = function (filters) {
         if (filters.length === 0) { return passThrough; }
 
-        return function (canvas, callback) {
+        return function (dCanvas, callback) {
             var i, filter, tmpData,
-                ctx = canvas.getContext('2d'),
-                width = canvas.width,
-                height = canvas.height,
+                ctx = dCanvas.getContext('2d'),
+                width = dCanvas.width,
+                height = dCanvas.height,
                 inData = ctx.getImageData(0, 0, width, height),
                 outData = createImageData(ctx, width, height);
 
@@ -96,29 +96,29 @@
             }
 
             ctx.putImageData(outData, 0, 0);
-            callback(null, canvas);
+            callback(null, dCanvas);
         };
     };
 
     CanvasRenderer._processWithWorker = function (filters) {
         if (filters.length === 0) { return passThrough; }
 
-        return function (canvas, callback) {
-            var ctx = canvas.getContext('2d'),
-                width = canvas.width,
-                height = canvas.height,
-                canvasInData = ctx.getImageData(0, 0, width, height),
-                canvasOutData = createImageData(ctx, width, height),
+        return function (dCanvas, callback) {
+            var ctx = dCanvas.getContext('2d'),
+                width = dCanvas.width,
+                height = dCanvas.height,
+                inData = ctx.getImageData(0, 0, width, height),
+                outData = createImageData(ctx, width, height),
                 worker = new window.Worker('img.worker.control.js');
 
             worker.onmessage = function (e) {
-                canvasOutData = e.data.result;
-                ctx.putImageData(canvasOutData, 0, 0);
-                callback(null, canvas);
+                outData = e.data.result;
+                ctx.putImageData(outData, 0, 0);
+                callback(null, dCanvas);
             };
 
-            worker.postMessage({ inData: canvasInData,
-                                 outData: canvasOutData,
+            worker.postMessage({ inData: inData,
+                                 outData: outData,
                                  width: width,
                                  height: height,
                                  filters: filters });
@@ -126,11 +126,11 @@
     };
 
     CanvasRenderer.toImage = function () {
-        return function (canvas, callback) {
+        return function (dCanvas, callback) {
             var img = new Image();
-            img.width = canvas.width;
-            img.height = canvas.height;
-            img.src = canvas.toDataURL();
+            img.width = dCanvas.width;
+            img.height = dCanvas.height;
+            img.src = dCanvas.toDataURL();
             callback(null, img);
         };
     };
@@ -143,12 +143,12 @@
 
     CanvasRenderer.processMask = function (mask) {
         if (mask.layers.length === 0) { return passThrough; }
-        return function (canvas, callback) {
+        return function (dCanvas, callback) {
             CanvasRenderer.renderBW(mask, function (c) {
                 var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
                     maskFilter = {name: "mask", options: {data: data, x: 0, y: 0, width: c.width, height: c.height} },
                     fn = CanvasRenderer.processImage([maskFilter]);
-                fn(canvas, callback);
+                fn(dCanvas, callback);
             });
         };
     };
@@ -165,12 +165,11 @@
         if (!layerImages) { callback(null); }
         if (layerImages.length === 0) { callback(null); }
 
-        var i,
-            canvas = document.createElement('canvas'),
-            ctx = canvas.getContext('2d');
+        var i, dCanvas = document.createElement('canvas'),
+            ctx = dCanvas.getContext('2d');
 
-        canvas.width = layerImages[0].width;
-        canvas.height = layerImages[0].height;
+        dCanvas.width = layerImages[0].width;
+        dCanvas.height = layerImages[0].height;
 
         for (i = 0; i < layerImages.length; i += 1) {
             ctx.save();
@@ -183,7 +182,7 @@
             ctx.drawImage(layerImages[i], 0, 0);
             ctx.restore();
         }
-        callback(canvas);
+        callback(dCanvas);
     };
 
     CanvasRenderer.render = function (canvas, callback) {
@@ -196,11 +195,11 @@
     };
 
     CanvasRenderer.renderBW = function (canvas, callback) {
-        CanvasRenderer.render(canvas, function (c) {
-            var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
+        CanvasRenderer.render(canvas, function (dCanvas) {
+            var data = dCanvas.getContext('2d').getImageData(0, 0, dCanvas.width, dCanvas.height).data,
                 bwFilter = {name: "luminancebw"},
                 fn = CanvasRenderer.processImage([bwFilter]);
-            fn(c, function (err, c) {
+            fn(dCanvas, function (err, c) {
                 callback(c);
             });
         });
