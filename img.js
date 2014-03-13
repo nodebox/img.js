@@ -170,34 +170,78 @@
         )(null, callback);
     };
 
+    CanvasRenderer.merge = function (width, height, layerData) {
+        var i, layer, baseData, blendData, outData, tmpData, layerOptions,
+            dCanvas = document.createElement('canvas'),
+            ctx = dCanvas.getContext('2d');
+        dCanvas.width = width;
+        dCanvas.height = height;
+
+        if (layerData.length > 0) {
+            layer = layerData[0];
+            if (layer.opacity !== 1) {
+                ctx.globalAlpha = layer.opacity;
+            }
+            ctx.drawImage(layer.img, layer.x, layer.y);
+        }
+        baseData = ctx.getImageData(0, 0, width, height);
+        outData = createImageData(ctx, width, height);
+
+        for (i = 1; i < layerData.length; i += 1) {
+            if (i > 1) {
+                tmpData = baseData;
+                baseData = outData;
+                outData = tmpData;
+            }
+            layer = layerData[i];
+            blendData = layer.img.getContext('2d').getImageData(0, 0, layer.img.width, layer.img.height);
+            layerOptions = {data: blendData.data, width: layer.img.width, height: layer.img.height, amount: layer.opacity, dx: layer.x, dy: layer.y};
+            blend[layer.blendmode](baseData.data, outData.data, width, height, layerOptions);
+        }
+
+        return outData;
+    }
+
     CanvasRenderer.composite = function (canvas, layerImages, callback) {
         if (!layerImages) { callback(null); }
         if (layerImages.length === 0) { callback(null); }
 
-        var i, x, y, layer, layerImg,
+        var i, x, y, layer, layerImg, mergedData,
             dCanvas = document.createElement('canvas'),
             ctx = dCanvas.getContext('2d'),
-            layers = canvas.layers;
+            layers = canvas.layers,
+            layerData = [];
 
         dCanvas.width = canvas.width;
         dCanvas.height = canvas.height;
 
         for (i = 0; i < layerImages.length; i += 1) {
-            ctx.save();
             layer = layers[i];
             layerImg = layerImages[i];
-
-            if (layer.opacity !== 1) {
-                ctx.globalAlpha = layer.opacity;
-            }
-            if (layer.blendmode !== "normal") {
-                ctx.globalCompositeOperation = layer.blendmode;
-            }
             x = (canvas.width - layerImg.width) / 2;
             y = (canvas.height - layerImg.height) / 2;
-            ctx.drawImage(layerImg, x, y);
-            ctx.restore();
+
+            if (layerImages.length === 1) {
+                if (layer.opacity !== 1) {
+                    ctx.globalAlpha = layer.opacity;
+                }
+                ctx.drawImage(layerImg, x, y);
+            } else {
+                layerData.push({
+                    opacity: layer.opacity,
+                    blendmode: layer.blendmode,
+                    img: layerImg,
+                    x: x,
+                    y: y,
+                });
+            }
         }
+
+        if (layerImages.length > 1) {
+            mergedData = CanvasRenderer.merge(canvas.width, canvas.height, layerData);
+            ctx.putImageData(mergedData, 0, 0);
+        }
+
         callback(dCanvas);
     };
 
