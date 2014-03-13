@@ -4,7 +4,9 @@
 (function () {
     'use strict';
 
-    var Canvas, CanvasRenderer, Layer, img;
+    var Canvas, CanvasRenderer, Layer, img,
+        DEFAULT_WIDTH = 600,
+        DEFAULT_HEIGHT = 600;
 
     function clamp(val, min, max) {
         return Math.min(max, Math.max(min, val));
@@ -42,7 +44,12 @@
         });
     };
 
-    Canvas = function () {
+    Canvas = function (width, height) {
+        if (!width) { width = DEFAULT_WIDTH; }
+        if (!height) { height = DEFAULT_HEIGHT; }
+
+        this.width = width;
+        this.height = height;
         this.layers = [];
     };
 
@@ -161,15 +168,16 @@
         )(null, callback);
     };
 
-    CanvasRenderer.composite = function (layers, layerImages, callback) {
+    CanvasRenderer.composite = function (canvas, layerImages, callback) {
         if (!layerImages) { callback(null); }
         if (layerImages.length === 0) { callback(null); }
 
         var i, dCanvas = document.createElement('canvas'),
-            ctx = dCanvas.getContext('2d');
+            ctx = dCanvas.getContext('2d'),
+            layers = canvas.layers;
 
-        dCanvas.width = layerImages[0].width;
-        dCanvas.height = layerImages[0].height;
+        dCanvas.width = canvas.width;
+        dCanvas.height = canvas.height;
 
         for (i = 0; i < layerImages.length; i += 1) {
             ctx.save();
@@ -189,7 +197,7 @@
         async.map(canvas.layers,
               CanvasRenderer.processLayer, function (err, layerImages) {
                 if (callback) {
-                    CanvasRenderer.composite(canvas.layers, layerImages, callback);
+                    CanvasRenderer.composite(canvas, layerImages, callback);
                 }
             });
     };
