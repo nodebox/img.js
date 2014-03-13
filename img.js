@@ -1,5 +1,5 @@
 /*jslint nomen:true */
-/*global _, async, console, Image, document, module, define, require, window, process */
+/*global _, async, console, Image, document, module, define, require, window, process, blend */
 
 (function () {
     'use strict';
@@ -200,7 +200,7 @@
         }
 
         return outData;
-    }
+    };
 
     CanvasRenderer.composite = function (canvas, layerImages, callback) {
         if (!layerImages) { callback(null); }
@@ -232,7 +232,7 @@
                     blendmode: layer.blendmode,
                     img: layerImg,
                     x: x,
-                    y: y,
+                    y: y
                 });
             }
         }

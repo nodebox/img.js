@@ -1,3 +1,6 @@
+/*jslint nomen: true, bitwise: true */
+/*global module, console, require, define, window, self */
+
 (function () {
     'use strict';
 
@@ -19,7 +22,9 @@
      * @param hsy The output color HSY normalized components.
      */
     function rgbToHsy(r, g, b) {
-        r /= 255, g /= 255, b /= 255;
+        r /= 255;
+        g /= 255;
+        b /= 255;
         var h, s, y;
 
         // For saturation equals to 0 any value of hue are valid.
@@ -110,323 +115,322 @@
         return [r, g, b];
     }
 
-
     function _normal(inData, outData, data2, pix, pixIn) {
         outData[pix] = data2[pixIn];
-        outData[pix+1] = data2[pixIn+1];
-        outData[pix+2] = data2[pixIn+2];
+        outData[pix + 1] = data2[pixIn + 1];
+        outData[pix + 2] = data2[pixIn + 2];
     }
 
     function _multiply(inData, outData, data2, pix, pixIn) {
         outData[pix] = inData[pix] * data2[pixIn] / 255;
-        outData[pix+1] = inData[pix+1] * data2[pixIn+1] / 255;
-        outData[pix+2] = inData[pix+2] * data2[pixIn+2] / 255;
+        outData[pix + 1] = inData[pix + 1] * data2[pixIn + 1] / 255;
+        outData[pix + 2] = inData[pix + 2] * data2[pixIn + 2] / 255;
     }
 
     function _subtract(inData, outData, data2, pix, pixIn) {
         var r = inData[pix] - data2[pixIn],
-            g = inData[pix+1] - data2[pixIn+1],
-            b = inData[pix+2] - data2[pixIn+2];
+            g = inData[pix + 1] - data2[pixIn + 1],
+            b = inData[pix + 2] - data2[pixIn + 2];
         outData[pix] = r < 0 ? 0 : r;
-        outData[pix+1] = g < 0 ? 0 : g;
-        outData[pix+2] = b < 0 ? 0 : b;
+        outData[pix + 1] = g < 0 ? 0 : g;
+        outData[pix + 2] = b < 0 ? 0 : b;
     }
 
     function _divide(inData, outData, data2, pix, pixIn) {
         var r1 = inData[pix],
-            g1 = inData[pix+1],
-            b1 = inData[pix+2],
+            g1 = inData[pix + 1],
+            b1 = inData[pix + 2],
             r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2];
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2];
         outData[pix] = r2 === 0 ? 0 : r1 / r2 * 255;
-        outData[pix+1] = g2 === 0 ? 0 : g1 / g2 * 255;
-        outData[pix+2] = b2 === 0 ? 0 : b1 / b2 * 255;
+        outData[pix + 1] = g2 === 0 ? 0 : g1 / g2 * 255;
+        outData[pix + 2] = b2 === 0 ? 0 : b1 / b2 * 255;
     }
 
     function _screen(inData, outData, data2, pix, pixIn) {
-        outData[pix] = (255 - ( ((255-inData[pix])*(255-data2[pixIn])) >> 8));
-        outData[pix+1] = (255 - ( ((255-inData[pix+1])*(255-data2[pixIn+1])) >> 8));
-        outData[pix+2] = (255 - ( ((255-inData[pix+2])*(255-data2[pixIn+2])) >> 8));
+        outData[pix] = (255 - (((255 - inData[pix]) * (255 - data2[pixIn])) >> 8));
+        outData[pix + 1] = (255 - (((255 - inData[pix + 1]) * (255 - data2[pixIn + 1])) >> 8));
+        outData[pix + 2] = (255 - (((255 - inData[pix + 2]) * (255 - data2[pixIn + 2])) >> 8));
     }
 
     function _lighten(inData, outData, data2, pix, pixIn) {
         var r1 = inData[pix],
-            g1 = inData[pix+1],
-            b1 = inData[pix+2],
+            g1 = inData[pix + 1],
+            b1 = inData[pix + 2],
             r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2];
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2];
         outData[pix] = r1 > r2 ? r1 : r2;
-        outData[pix+1] = g1 > g2 ? g1 : g2;
-        outData[pix+2] = b1 > b2 ? b1 : b2;
+        outData[pix + 1] = g1 > g2 ? g1 : g2;
+        outData[pix + 2] = b1 > b2 ? b1 : b2;
     }
 
     function _darken(inData, outData, data2, pix, pixIn) {
         var r1 = inData[pix],
-            g1 = inData[pix+1],
-            b1 = inData[pix+2],
+            g1 = inData[pix + 1],
+            b1 = inData[pix + 2],
             r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2];
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2];
         outData[pix] = r1 < r2 ? r1 : r2;
-        outData[pix+1] = g1 < g2 ? g1 : g2;
-        outData[pix+2] = b1 < b2 ? b1 : b2;
+        outData[pix + 1] = g1 < g2 ? g1 : g2;
+        outData[pix + 2] = b1 < b2 ? b1 : b2;
     }
 
     function _darkercolor(inData, outData, data2, pix, pixIn) {
         var r1 = inData[pix],
-            g1 = inData[pix+1],
-            b1 = inData[pix+2],
+            g1 = inData[pix + 1],
+            b1 = inData[pix + 2],
             r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2];
-        if (r1*0.3+g1*0.59+b1*0.11 <= r2*0.3+g2*0.59+b2*0.11) {
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2];
+        if (r1 * 0.3 + g1 * 0.59 + b1 * 0.11 <= r2 * 0.3 + g2 * 0.59 + b2 * 0.11) {
             outData[pix] = r1;
-            outData[pix+1] = g1;
-            outData[pix+2] = b1;
+            outData[pix + 1] = g1;
+            outData[pix + 2] = b1;
         } else {
             outData[pix] = r2;
-            outData[pix+1] = g2;
-            outData[pix+2] = b2;
+            outData[pix + 1] = g2;
+            outData[pix + 2] = b2;
         }
     }
 
     function _lightercolor(inData, outData, data2, pix, pixIn) {
         var r1 = inData[pix],
-            g1 = inData[pix+1],
-            b1 = inData[pix+2],
+            g1 = inData[pix + 1],
+            b1 = inData[pix + 2],
             r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2];
-        if (r1*0.3+g1*0.59+b1*0.11 > r2*0.3+g2*0.59+b2*0.11) {
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2];
+        if (r1 * 0.3 + g1 * 0.59 + b1 * 0.11 > r2 * 0.3 + g2 * 0.59 + b2 * 0.11) {
             outData[pix] = r1;
-            outData[pix+1] = g1;
-            outData[pix+2] = b1;
+            outData[pix + 1] = g1;
+            outData[pix + 2] = b1;
         } else {
             outData[pix] = r2;
-            outData[pix+1] = g2;
-            outData[pix+2] = b2;
+            outData[pix + 1] = g2;
+            outData[pix + 2] = b2;
         }
     }
 
     function _lineardodge(inData, outData, data2, pix, pixIn) {
         var r = inData[pix] + data2[pixIn],
-            g = inData[pix+1] + data2[pixIn+1],
-            b = inData[pix+2] + data2[pixIn+2];
+            g = inData[pix + 1] + data2[pixIn + 1],
+            b = inData[pix + 2] + data2[pixIn + 2];
         outData[pix] = r > 255 ? 255 : r;
-        outData[pix+1] = g > 255 ? 255 : g;
-        outData[pix+2] = b > 255 ? 255 : b;
+        outData[pix + 1] = g > 255 ? 255 : g;
+        outData[pix + 2] = b > 255 ? 255 : b;
     }
 
     function _linearburn(inData, outData, data2, pix, pixIn) {
         var r = inData[pix] + data2[pixIn],
-            g = inData[pix+1] + data2[pixIn+1],
-            b = inData[pix+2] + data2[pixIn+2];
+            g = inData[pix + 1] + data2[pixIn + 1],
+            b = inData[pix + 2] + data2[pixIn + 2];
         outData[pix] = r < 255 ? 0 : (r - 255);
-        outData[pix+1] = g < 255 ? 0 : (g - 255);
-        outData[pix+2] = b < 255 ? 0 : (b - 255);
+        outData[pix + 1] = g < 255 ? 0 : (g - 255);
+        outData[pix + 2] = b < 255 ? 0 : (b - 255);
     }
 
     function _difference(inData, outData, data2, pix, pixIn) {
         var r = inData[pix] - data2[pixIn],
-            g = inData[pix+1] - data2[pixIn+1],
-            b = inData[pix+2] - data2[pixIn+2];
+            g = inData[pix + 1] - data2[pixIn + 1],
+            b = inData[pix + 2] - data2[pixIn + 2];
         outData[pix] = r < 0 ? -r : r;
-        outData[pix+1] = g < 0 ? -g : g;
-        outData[pix+2] = b < 0 ? -b : b;
+        outData[pix + 1] = g < 0 ? -g : g;
+        outData[pix + 2] = b < 0 ? -b : b;
     }
 
     function _exclusion(inData, outData, data2, pix, pixIn) {
         var r1 = inData[pix],
-            g1 = inData[pix+1],
-            b1 = inData[pix+2],
+            g1 = inData[pix + 1],
+            b1 = inData[pix + 2],
             div_2_255 = 2 / 255;
         outData[pix] = r1 - (r1 * div_2_255 - 1) * data2[pixIn];
-				outData[pix+1] = g1 - (g1 * div_2_255 - 1) * data2[pixIn+1];
-				outData[pix+2] = b1 - (b1 * div_2_255 - 1) * data2[pixIn+2];
+        outData[pix + 1] = g1 - (g1 * div_2_255 - 1) * data2[pixIn + 1];
+		outData[pix + 2] = b1 - (b1 * div_2_255 - 1) * data2[pixIn + 2];
     }
 
     function _overlay(inData, outData, data2, pix, pixIn) {
         var r1 = inData[pix],
-            g1 = inData[pix+1],
-            b1 = inData[pix+2],
+            g1 = inData[pix + 1],
+            b1 = inData[pix + 2],
             div_2_255 = 2 / 255;
 
-				if (r1 < 128) {
-				    outData[pix] = data2[pixIn]*r1*div_2_255;
+        if (r1 < 128) {
+		    outData[pix] = data2[pixIn] * r1 * div_2_255;
         } else {
-						outData[pix] = 255 - (255-data2[pixIn])*(255-r1)*div_2_255;
+		    outData[pix] = 255 - (255 - data2[pixIn]) * (255 - r1) * div_2_255;
         }
 
-				if (g1 < 128) {
-						outData[pix+1] = data2[pixIn+1]*g1*div_2_255;
-				} else {
-						outData[pix+1] = 255 - (255-data2[pixIn+1])*(255-g1)*div_2_255;
+        if (g1 < 128) {
+		    outData[pix + 1] = data2[pixIn + 1] * g1 * div_2_255;
+        } else {
+		    outData[pix + 1] = 255 - (255 - data2[pixIn + 1]) * (255 - g1) * div_2_255;
         }
 
-				if (b1 < 128) {
-				  	outData[pix+2] = data2[pixIn+2]*b1*div_2_255;
-				} else {
-				  	outData[pix+2] = 255 - (255-data2[pixIn+2])*(255-b1)*div_2_255;
+        if (b1 < 128) {
+            outData[pix + 2] = data2[pixIn + 2] * b1 * div_2_255;
+        } else {
+		    outData[pix + 2] = 255 - (255 - data2[pixIn + 2]) * (255 - b1) * div_2_255;
         }
     }
 
     function _softlight(inData, outData, data2, pix, pixIn) {
         var r1 = inData[pix],
-            g1 = inData[pix+1],
-            b1 = inData[pix+2],
+            g1 = inData[pix + 1],
+            b1 = inData[pix + 2],
             div_2_255 = 2 / 255;
 
-				if (r1 < 128) {
-						outData[pix] = ((data2[pixIn]>>1) + 64) * r1 * div_2_255;
+        if (r1 < 128) {
+		    outData[pix] = ((data2[pixIn] >> 1) + 64) * r1 * div_2_255;
         } else {
-						outData[pix] = 255 - (191 - (data2[pixIn]>>1)) * (255-r1) * div_2_255;
+			outData[pix] = 255 - (191 - (data2[pixIn] >> 1)) * (255 - r1) * div_2_255;
         }
 
-				if (g1 < 128) {
-						outData[pix+1] = ((data2[pixIn+1]>>1)+64) * g1 * div_2_255;
-        }	else {
-						outData[pix+1] = 255 - (191 - (data2[pixIn+1]>>1)) * (255-g1) * div_2_255;
+        if (g1 < 128) {
+		    outData[pix + 1] = ((data2[pixIn + 1] >> 1) + 64) * g1 * div_2_255;
+        } else {
+			outData[pix + 1] = 255 - (191 - (data2[pixIn + 1] >> 1)) * (255 - g1) * div_2_255;
         }
 
-				if (b1 < 128) {
-						outData[pix+2] = ((data2[pixIn+2]>>1)+64) * b1 * div_2_255;
-        }	else {
-						outData[pix+2] = 255 - (191 - (data2[pixIn+2]>>1)) * (255-b1) * div_2_255;
+		if (b1 < 128) {
+		    outData[pix + 2] = ((data2[pixIn + 2] >> 1) + 64) * b1 * div_2_255;
+        } else {
+            outData[pix + 2] = 255 - (191 - (data2[pixIn + 2] >> 1)) * (255 - b1) * div_2_255;
         }
     }
 
     function _hardlight(inData, outData, data2, pix, pixIn) {
         var r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2],
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2],
             div_2_255 = 2 / 255;
 
-				if (r2 < 128) {
-  					outData[pix] = inData[pix] * r2 * div_2_255;
-        }	else {
-	  				outData[pix] = 255 - (255-inData[pix]) * (255-r2) * div_2_255;
-        }
-
-				if (g2 < 128) {
-		  			outData[pix+1] = inData[pix+1] * g2 * div_2_255;
-        }	else {
-						outData[pix+1] = 255 - (255-inData[pix+1]) * (255-g2) * div_2_255;
-        }
-
-				if (b2 < 128) {
-						outData[pix+2] = inData[pix+2] * b2 * div_2_255;
+        if (r2 < 128) {
+            outData[pix] = inData[pix] * r2 * div_2_255;
         } else {
-						outData[pix+2] = 255 - (255-inData[pix+2]) * (255-b2) * div_2_255;
+            outData[pix] = 255 - (255 - inData[pix]) * (255 - r2) * div_2_255;
+        }
+
+        if (g2 < 128) {
+            outData[pix + 1] = inData[pix + 1] * g2 * div_2_255;
+        } else {
+            outData[pix + 1] = 255 - (255 - inData[pix + 1]) * (255 - g2) * div_2_255;
+        }
+
+        if (b2 < 128) {
+            outData[pix + 2] = inData[pix + 2] * b2 * div_2_255;
+        } else {
+			outData[pix + 2] = 255 - (255 - inData[pix + 2]) * (255 - b2) * div_2_255;
         }
     }
 
     function _colordodge(inData, outData, data2, pix, pixIn) {
         var r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2],
-            r1 = (inData[pix]<<8)/(255-r2),
-            g1 = (inData[pix+1]<<8)/(255-g2),
-            b1 = (inData[pix+2]<<8)/(255-b2);
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2],
+            r1 = (inData[pix] << 8) / (255 - r2),
+            g1 = (inData[pix + 1] << 8) / (255 - g2),
+            b1 = (inData[pix + 2] << 8) / (255 - b2);
         outData[pix] = (r1 > 255 || r2 === 255) ? 255 : r1;
-        outData[pix+1] = (g1 > 255 || g2 === 255) ? 255 : g1;
-        outData[pix+2] = (b1 > 255 || b2 === 255) ? 255 : b1;
+        outData[pix + 1] = (g1 > 255 || g2 === 255) ? 255 : g1;
+        outData[pix + 2] = (b1 > 255 || b2 === 255) ? 255 : b1;
     }
 
     function _colorburn(inData, outData, data2, pix, pixIn) {
         var r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2],
-            r1 = 255-((255-inData[pix])<<8)/r2,
-            g1 = 255-((255-inData[pix+1])<<8)/g2,
-            b1 = 255-((255-inData[pix+2])<<8)/b2;
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2],
+            r1 = 255 - ((255 - inData[pix]) << 8) / r2,
+            g1 = 255 - ((255 - inData[pix + 1]) << 8) / g2,
+            b1 = 255 - ((255 - inData[pix + 2]) << 8) / b2;
         outData[pix] = (r1 < 0 || r2 === 0) ? 0 : r1;
-        outData[pix+1] = (g1 < 0 || g2 === 0) ? 0 : g1;
-        outData[pix+2] = (b1 < 0 || b2 === 0) ? 0 : b1;
+        outData[pix + 1] = (g1 < 0 || g2 === 0) ? 0 : g1;
+        outData[pix + 2] = (b1 < 0 || b2 === 0) ? 0 : b1;
     }
 
     function _linearlight(inData, outData, data2, pix, pixIn) {
         var r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2],
-            r1 = 2*r2+inData[pix]-256,
-            g1 = 2*g2+inData[pix+1]-256,
-            b1 = 2*b2+inData[pix+2]-256;
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2],
+            r1 = 2 * r2 + inData[pix] - 256,
+            g1 = 2 * g2 + inData[pix + 1] - 256,
+            b1 = 2 * b2 + inData[pix + 2] - 256;
         outData[pix] = (r1 < 0 || (r2 < 128 && r1 < 0)) ? 0 : (r1 > 255 ? 255 : r1);
-        outData[pix+1] = (g1 < 0 || (g2 < 128 && g1 < 0)) ? 0 : (g1 > 255 ? 255 : g1);
-        outData[pix+2] = (b1 < 0 || (b2 < 128 && b1 < 0)) ? 0 : (b1 > 255 ? 255 : b1);
+        outData[pix + 1] = (g1 < 0 || (g2 < 128 && g1 < 0)) ? 0 : (g1 > 255 ? 255 : g1);
+        outData[pix + 2] = (b1 < 0 || (b2 < 128 && b1 < 0)) ? 0 : (b1 > 255 ? 255 : b1);
     }
 
     function _vividlight(inData, outData, data2, pix, pixIn) {
         var a,
             r1 = inData[pix],
-            g1 = inData[pix+1],
-            b1 = inData[pix+2],
+            g1 = inData[pix + 1],
+            b1 = inData[pix + 2],
             r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2];
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2];
 
-				if (r2 < 128) {
-						if (r2) {
-                a = 255 - ((255-r1)<<8) / (2*r2);
+        if (r2 < 128) {
+            if (r2) {
+                a = 255 - ((255 - r1) << 8) / (2 * r2);
                 outData[pix] = a < 0 ? 0 : a;
-						} else {
-						    outData[pix] = 0;
-						}
-				} else {
-            a = 2*r2-256;
+            } else {
+			    outData[pix] = 0;
+			}
+        } else {
+            a = 2 * r2 - 256;
             if (a < 255) {
-                a = (r1<<8)/(255-a);
+                a = (r1 << 8) / (255 - a);
                 outData[pix] = a > 255 ? 255 : a;
-				    } else {
+            } else {
                 outData[pix] = a < 0 ? 0 : a;
-				    }
+            }
         }
 
-				if (g2 < 128) {
-						if (g2) {
-                a = 255 - ((255-g1)<<8) / (2*g2);
-                outData[pix+1] = a < 0 ? 0 : a;
-						} else {
-						    outData[pix+1] = 0;
-						}
-				} else {
-            a = 2*g2-256;
+        if (g2 < 128) {
+            if (g2) {
+                a = 255 - ((255 - g1) << 8) / (2 * g2);
+                outData[pix + 1] = a < 0 ? 0 : a;
+            } else {
+			    outData[pix + 1] = 0;
+			}
+        } else {
+            a = 2 * g2 - 256;
             if (a < 255) {
-                a = (g1<<8)/(255-a);
-                outData[pix+1] = a > 255 ? 255 : a;
-				    } else {
-                outData[pix+1] = a < 0 ? 0 : a;
-				    }
+                a = (g1 << 8) / (255 - a);
+                outData[pix + 1] = a > 255 ? 255 : a;
+            } else {
+                outData[pix + 1] = a < 0 ? 0 : a;
+			}
         }
 
-				if (b2 < 128) {
-						if (b2) {
-                a = 255 - ((255-b1)<<8) / (2*b2);
-                outData[pix+2] = a < 0 ? 0 : a;
-						} else {
-						    outData[pix+2] = 0;
-						}
-				} else {
-            a = 2*b2-256;
+        if (b2 < 128) {
+		    if (b2) {
+                a = 255 - ((255 - b1) << 8) / (2 * b2);
+                outData[pix + 2] = a < 0 ? 0 : a;
+            } else {
+			    outData[pix + 2] = 0;
+			}
+        } else {
+            a = 2 * b2 - 256;
             if (a < 255) {
-                a = (b1<<8)/(255-a);
-                outData[pix+2] = a > 255 ? 255 : a;
-				    } else {
-                outData[pix+2] = a < 0 ? 0 : a;
-				    }
+                a = (b1 << 8) / (255 - a);
+                outData[pix + 2] = a > 255 ? 255 : a;
+            } else {
+                outData[pix + 2] = a < 0 ? 0 : a;
+			}
         }
     }
 
     function _pinlight(inData, outData, data2, pix, pixIn) {
         var a,
             r1 = inData[pix],
-            g1 = inData[pix+1],
-            b1 = inData[pix+2],
+            g1 = inData[pix + 1],
+            b1 = inData[pix + 2],
             r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2];
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2];
 
         if (r2 < 128) {
             a = 2 * r2;
@@ -438,86 +442,86 @@
 
         if (g2 < 128) {
             a = 2 * g2;
-            outData[pix+1] = g1 < a ? g1 : a;
+            outData[pix + 1] = g1 < a ? g1 : a;
         } else {
             a = 2 * g2 - 256;
-            outData[pix+1] = g1 > a ? g1 : a;
+            outData[pix + 1] = g1 > a ? g1 : a;
         }
 
         if (b2 < 128) {
             a = 2 * b2;
-            outData[pix+2] = b1 < a ? b1 : a;
+            outData[pix + 2] = b1 < a ? b1 : a;
         } else {
             a = 2 * b2 - 256;
-            outData[pix+2] = b1 > a ? b1 : a;
+            outData[pix + 2] = b1 > a ? b1 : a;
         }
     }
 
     function _hardmix(inData, outData, data2, pix, pixIn) {
         var a,
             r1 = inData[pix],
-            g1 = inData[pix+1],
-            b1 = inData[pix+2],
+            g1 = inData[pix + 1],
+            b1 = inData[pix + 2],
             r2 = data2[pixIn],
-            g2 = data2[pixIn+1],
-            b2 = data2[pixIn+2];
+            g2 = data2[pixIn + 1],
+            b2 = data2[pixIn + 2];
 
         if (r2 < 128) {
-            outData[pix] = (255 - ((255-r1)<<8)/(2*r2) < 128 || r2 === 0) ? 0 : 255;
+            outData[pix] = (255 - ((255 - r1) << 8) / (2 * r2) < 128 || r2 === 0) ? 0 : 255;
         } else {
             a = 2 * r2 - 256;
-            outData[pix] = (a < 255 && (r1<<8)/(255-a) < 128) ? 0 : 255;
+            outData[pix] = (a < 255 && (r1 << 8) / (255 - a) < 128) ? 0 : 255;
         }
 
         if (g2 < 128) {
-            outData[pix+1] = (255 - ((255-g1)<<8)/(2*g2) < 128 || g2 === 0) ? 0 : 255;
+            outData[pix + 1] = (255 - ((255 - g1) << 8) / (2 * g2) < 128 || g2 === 0) ? 0 : 255;
         } else {
             a = 2 * g2 - 256;
-            outData[pix+1] = (a < 255 && (g1<<8)/(255-a) < 128) ? 0 : 255;
+            outData[pix + 1] = (a < 255 && (g1 << 8) / (255 - a) < 128) ? 0 : 255;
         }
 
         if (b2 < 128) {
-            outData[pix+2] = (255 - ((255-b1)<<8)/(2*b2) < 128 || b2 === 0) ? 0 : 255;
+            outData[pix + 2] = (255 - ((255 - b1) << 8) / (2 * b2) < 128 || b2 === 0) ? 0 : 255;
         } else {
             a = 2 * b2 - 256;
-            outData[pix+2] = (a < 255 && (b1<<8)/(255-a) < 128) ? 0 : 255;
+            outData[pix + 2] = (a < 255 && (b1 << 8) / (255 - a) < 128) ? 0 : 255;
         }
     }
 
     function _hue(inData, outData, data2, pix, pixIn) {
-       var hcl1 = rgbToHsy(inData[pix], inData[pix+1], inData[pix+2]),
-           hcl2 = rgbToHsy(data2[pixIn], data2[pixIn+1], data2[pixIn+2]),
-           rgb = hsyToRgb(hcl2[0], hcl1[1], hcl1[2]);
+        var hcl1 = rgbToHsy(inData[pix], inData[pix + 1], inData[pix + 2]),
+            hcl2 = rgbToHsy(data2[pixIn], data2[pixIn + 1], data2[pixIn + 2]),
+            rgb = hsyToRgb(hcl2[0], hcl1[1], hcl1[2]);
         outData[pix] = rgb[0];
-        outData[pix+1] = rgb[1];
-        outData[pix+2] = rgb[2];
+        outData[pix + 1] = rgb[1];
+        outData[pix + 2] = rgb[2];
     }
 
     function _saturation(inData, outData, data2, pix, pixIn) {
-        var hsl1 = rgbToHsy(inData[pix], inData[pix+1], inData[pix+2]),
-            hsl2 = rgbToHsy(data2[pixIn], data2[pixIn+1], data2[pixIn+2]),
+        var hsl1 = rgbToHsy(inData[pix], inData[pix + 1], inData[pix + 2]),
+            hsl2 = rgbToHsy(data2[pixIn], data2[pixIn + 1], data2[pixIn + 2]),
             rgb = hsyToRgb(hsl1[0], hsl2[1], hsl1[2]);
         outData[pix] = rgb[0];
-        outData[pix+1] = rgb[1];
-        outData[pix+2] = rgb[2];
+        outData[pix + 1] = rgb[1];
+        outData[pix + 2] = rgb[2];
     }
 
     function _lightness(inData, outData, data2, pix, pixIn) {
-        var hsl1 = rgbToHsy(inData[pix], inData[pix+1], inData[pix+2]),
-            hsl2 = rgbToHsy(data2[pixIn], data2[pixIn+1], data2[pixIn+2]),
+        var hsl1 = rgbToHsy(inData[pix], inData[pix + 1], inData[pix + 2]),
+            hsl2 = rgbToHsy(data2[pixIn], data2[pixIn + 1], data2[pixIn + 2]),
             rgb = hsyToRgb(hsl1[0], hsl1[1], hsl2[2]);
         outData[pix] = rgb[0];
-        outData[pix+1] = rgb[1];
-        outData[pix+2] = rgb[2];
+        outData[pix + 1] = rgb[1];
+        outData[pix + 2] = rgb[2];
     }
 
     function _color(inData, outData, data2, pix, pixIn) {
-        var hsl1 = rgbToHsy(inData[pix], inData[pix+1], inData[pix+2]),
-            hsl2 = rgbToHsy(data2[pixIn], data2[pixIn+1], data2[pixIn+2]),
+        var hsl1 = rgbToHsy(inData[pix], inData[pix + 1], inData[pix + 2]),
+            hsl2 = rgbToHsy(data2[pixIn], data2[pixIn + 1], data2[pixIn + 2]),
             rgb = hsyToRgb(hsl2[0], hsl2[1], hsl1[2]);
         outData[pix] = rgb[0];
-        outData[pix+1] = rgb[1];
-        outData[pix+2] = rgb[2];
+        outData[pix + 1] = rgb[1];
+        outData[pix + 2] = rgb[2];
     }
 
     function _blend(inData, outData, width, height, options, progress) {
@@ -530,26 +534,26 @@
             dx = options.dx || 0,
             dy = options.dy || 0;
 
-        for (y = 0; y < height; ++y) {
-            for (x = 0; x < width; ++x) {
+        for (y = 0; y < height; y += 1) {
+            for (x = 0; x < width; x += 1) {
                 if (y >= dy && y < Math.min(height, h + dy) && x >= dx && x < Math.min(width, w + dx)) {
                     pix = (y * w + x) * 4;
                     pixIn = ((y - dy) * options.width + x - dx) * 4;
                     fn(inData, outData, data2, pix, pixIn);
-                    outData[pix+3] = inData[pix+3];
-                    a = amount * data2[pixIn+3] / 255;
+                    outData[pix + 3] = inData[pix + 3];
+                    a = amount * data2[pixIn + 3] / 255;
                     if (a < 1) {
                         a2 = 1 - a;
                         outData[pix] = (inData[pix] * a2 + outData[pix] * a);
-                        outData[pix+1] = (inData[pix+1] * a2 + outData[pix+1] * a);
-                        outData[pix+2] = (inData[pix+2] * a2 + outData[pix+2] * a);
+                        outData[pix + 1] = (inData[pix + 1] * a2 + outData[pix + 1] * a);
+                        outData[pix + 2] = (inData[pix + 2] * a2 + outData[pix + 2] * a);
                     }
                 } else {
                     pix = (y * width + x) * 4;
                     outData[pix] = inData[pix];
-                    outData[pix+1] = inData[pix+1];
-                    outData[pix+2] = inData[pix+2];
-                    outData[pix+3] = inData[pix+3];
+                    outData[pix + 1] = inData[pix + 1];
+                    outData[pix + 2] = inData[pix + 2];
+                    outData[pix + 3] = inData[pix + 3];
                 }
             }
         }
@@ -557,9 +561,9 @@
 
     function _wrap(type) {
         return function (inData, outData, width, height, options, progress) {
-            options["type"] = type;
+            options.type = type;
             _blend(inData, outData, width, height, options, progress);
-        }
+        };
     }
 
     blend_fn = {
