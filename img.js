@@ -5,8 +5,8 @@
     'use strict';
 
     var Canvas, CanvasRenderer, Layer, img,
-        DEFAULT_WIDTH = 600,
-        DEFAULT_HEIGHT = 600;
+        DEFAULT_WIDTH = 800,
+        DEFAULT_HEIGHT = 800;
 
     function clamp(val, min, max) {
         return Math.min(max, Math.max(min, val));
@@ -151,6 +151,8 @@
     CanvasRenderer.processMask = function (mask) {
         if (mask.layers.length === 0) { return passThrough; }
         return function (dCanvas, callback) {
+            mask.width = dCanvas.width;
+            mask.height = dCanvas.height;
             CanvasRenderer.renderBW(mask, function (c) {
                 var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
                     maskFilter = {name: "mask", options: {data: data, x: 0, y: 0, width: c.width, height: c.height} },
@@ -172,7 +174,8 @@
         if (!layerImages) { callback(null); }
         if (layerImages.length === 0) { callback(null); }
 
-        var i, dCanvas = document.createElement('canvas'),
+        var i, x, y, layer, layerImg,
+            dCanvas = document.createElement('canvas'),
             ctx = dCanvas.getContext('2d'),
             layers = canvas.layers;
 
@@ -181,13 +184,18 @@
 
         for (i = 0; i < layerImages.length; i += 1) {
             ctx.save();
-            if (layers[i].opacity !== 1) {
-                ctx.globalAlpha = layers[i].opacity;
+            layer = layers[i];
+            layerImg = layerImages[i];
+
+            if (layer.opacity !== 1) {
+                ctx.globalAlpha = layer.opacity;
             }
-            if (layers[i].blendmode !== "normal") {
-                ctx.globalCompositeOperation = layers[i].blendmode;
+            if (layer.blendmode !== "normal") {
+                ctx.globalCompositeOperation = layer.blendmode;
             }
-            ctx.drawImage(layerImages[i], 0, 0);
+            x = (canvas.width - layerImg.width) / 2;
+            y = (canvas.height - layerImg.height) / 2;
+            ctx.drawImage(layerImg, x, y);
             ctx.restore();
         }
         callback(dCanvas);
