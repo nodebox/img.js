@@ -9,7 +9,7 @@
     <script>
         window.onload = function () {
             var layer, mask,
-                canvas = new img.Canvas();
+                canvas = new img.Canvas(600, 450);
             layer = canvas.addLayer("images/img1.jpg");
             layer.addFilter("coloradjust", {r: 0.25, g: 0.25});
             layer = canvas.addLayer("images/img2.jpg");
