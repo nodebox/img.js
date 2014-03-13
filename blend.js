@@ -536,8 +536,8 @@
 
         for (y = 0; y < height; y += 1) {
             for (x = 0; x < width; x += 1) {
-                if (y >= dy && y < Math.min(height, h + dy) && x >= dx && x < Math.min(width, w + dx)) {
-                    pix = (y * w + x) * 4;
+                if (y >= dy && y < Math.max(height, h + dy) && x >= dx && x < Math.max(width, w + dx)) {
+                    pix = (y * width + x) * 4;
                     pixIn = ((y - dy) * options.width + x - dx) * 4;
                     fn(inData, outData, data2, pix, pixIn);
                     outData[pix + 3] = inData[pix + 3];
