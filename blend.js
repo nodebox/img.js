@@ -9,9 +9,9 @@
     process = function (inData, outData, width, height, options) {
 
         var blend_fn, R, G, B,
-            r1, g1, b1,
-            r2, g2, b2,
-            rO, gO, bO,
+            dr, dg, db,
+            sr, sg, sb,
+            or, og, ob,
             max = Math.max,
             min = Math.min,
             div_2_255 = 2 / 255;
@@ -126,244 +126,244 @@
         }
 
         function _normal() {
-            rO = r2;
-            gO = g2;
-            bO = b2;
+            or = sr;
+            og = sg;
+            ob = sb;
         }
 
         function _multiply() {
-            rO = r1 * r2 / 255;
-            gO = g1 * g2 / 255;
-            bO = b1 * b2 / 255;
+            or = dr * sr / 255;
+            og = dg * sg / 255;
+            ob = db * sb / 255;
         }
 
         function _subtract(inData, outData, data2, pix, pixIn) {
-            rO = max(r1 - r2, 0);
-            gO = max(g1 - g2, 0);
-            bO = max(b1 - b2, 0);
+            or = max(dr - sr, 0);
+            og = max(dg - sg, 0);
+            ob = max(db - sb, 0);
         }
 
         function _divide() {
-            rO = r2 === 0 ? 0 : r1 / r2 * 255;
-            gO = g2 === 0 ? 0 : g1 / g2 * 255;
-            bO = b2 === 0 ? 0 : b1 / b2 * 255;
+            or = sr === 0 ? 0 : dr / sr * 255;
+            og = sg === 0 ? 0 : dg / sg * 255;
+            ob = sb === 0 ? 0 : db / sb * 255;
         }
 
         function _screen() {
-            rO = (255 - (((255 - r1) * (255 - r2)) >> 8));
-            gO = (255 - (((255 - g1) * (255 - g2)) >> 8));
-            bO = (255 - (((255 - b1) * (255 - b2)) >> 8));
+            or = (255 - (((255 - dr) * (255 - sr)) >> 8));
+            og = (255 - (((255 - dg) * (255 - sg)) >> 8));
+            ob = (255 - (((255 - db) * (255 - sb)) >> 8));
         }
 
         function _lighten() {
-            rO = r1 > r2 ? r1 : r2;
-            gO = g1 > g2 ? g1 : g2;
-            bO = b1 > b2 ? b1 : b2;
+            or = dr > sr ? dr : sr;
+            og = dg > sg ? dg : sg;
+            ob = db > sb ? db : sb;
         }
 
         function _darken() {
-            rO = r1 < r2 ? r1 : r2;
-            gO = g1 < g2 ? g1 : g2;
-            bO = b1 < b2 ? b1 : b2;
+            or = dr < sr ? dr : sr;
+            og = dg < sg ? dg : sg;
+            ob = db < sb ? db : sb;
         }
 
         function _darkercolor() {
-            if (r1 * 0.3 + g1 * 0.59 + b1 * 0.11 <= r2 * 0.3 + g2 * 0.59 + b2 * 0.11) {
-                rO = r1;
-                gO = g1;
-                bO = b1;
+            if (dr * 0.3 + dg * 0.59 + db * 0.11 <= sr * 0.3 + sg * 0.59 + sb * 0.11) {
+                or = dr;
+                og = dg;
+                ob = db;
             } else {
-                rO = r2;
-                gO = g2;
-                bO = b2;
+                or = sr;
+                og = sg;
+                ob = sb;
             }
         }
 
         function _lightercolor() {
-            if (r1 * 0.3 + g1 * 0.59 + b1 * 0.11 > r2 * 0.3 + g2 * 0.59 + b2 * 0.11) {
-                rO = r1;
-                gO = g1;
-                bO = b1;
+            if (dr * 0.3 + dg * 0.59 + db * 0.11 > sr * 0.3 + sg * 0.59 + sb * 0.11) {
+                or = dr;
+                og = dg;
+                ob = db;
             } else {
-                rO = r2;
-                gO = g2;
-                bO = b2;
+                or = sr;
+                og = sg;
+                ob = sb;
             }
         }
 
         function _lineardodge() {
-            rO = min(r1 + r2, 255);
-            gO = min(g1 + g2, 255);
-            bO = min(b1 + b2, 255);
+            or = min(dr + sr, 255);
+            og = min(dg + sg, 255);
+            ob = min(db + sb, 255);
         }
 
         function _linearburn() {
-            rO = r1 + r2;
-            gO = g1 + g2;
-            bO = b1 + b2;
+            or = dr + sr;
+            og = dg + sg;
+            ob = db + sb;
 
-            rO = rO < 255 ? 0 : (rO - 255);
-            gO = gO < 255 ? 0 : (gO - 255);
-            bO = bO < 255 ? 0 : (bO - 255);
+            or = or < 255 ? 0 : (or - 255);
+            og = og < 255 ? 0 : (og - 255);
+            ob = ob < 255 ? 0 : (ob - 255);
         }
 
         function _difference() {
-            rO = r1 - r2;
-            gO = g1 - g2;
-            bO = b1 - b2;
+            or = dr - sr;
+            og = dg - sg;
+            ob = db - sb;
 
-            rO = rO < 0 ? -rO : rO;
-            gO = gO < 0 ? -gO : gO;
-            bO = bO < 0 ? -bO : bO;
+            or = or < 0 ? -or : or;
+            og = og < 0 ? -og : og;
+            ob = ob < 0 ? -ob : ob;
         }
 
         function _exclusion() {
-            rO = r1 - (r1 * div_2_255 - 1) * r2;
-            gO = g1 - (g1 * div_2_255 - 1) * g2;
-            bO = b1 - (b1 * div_2_255 - 1) * b2;
+            or = dr - (dr * div_2_255 - 1) * sr;
+            og = dg - (dg * div_2_255 - 1) * sg;
+            ob = db - (db * div_2_255 - 1) * sb;
         }
 
         function _overlay() {
-            if (r1 < 128) {
-                rO = r2 * r1 * div_2_255;
+            if (dr < 128) {
+                or = sr * dr * div_2_255;
             } else {
-                rO = 255 - (255 - r2) * (255 - r1) * div_2_255;
+                or = 255 - (255 - sr) * (255 - dr) * div_2_255;
             }
 
-            if (g1 < 128) {
-                gO = g2 * g1 * div_2_255;
+            if (dg < 128) {
+                og = sg * dg * div_2_255;
             } else {
-                gO = 255 - (255 - g2) * (255 - g1) * div_2_255;
+                og = 255 - (255 - sg) * (255 - dg) * div_2_255;
             }
 
-            if (b1 < 128) {
-                bO = b2 * b1 * div_2_255;
+            if (db < 128) {
+                ob = sb * db * div_2_255;
             } else {
-                bO = 255 - (255 - b2) * (255 - b1) * div_2_255;
+                ob = 255 - (255 - sb) * (255 - db) * div_2_255;
             }
         }
 
         function _softlight() {
-            if (r1 < 128) {
-                rO = ((r2 >> 1) + 64) * r1 * div_2_255;
+            if (dr < 128) {
+                or = ((sr >> 1) + 64) * dr * div_2_255;
             } else {
-                rO = 255 - (191 - (r2 >> 1)) * (255 - r1) * div_2_255;
+                or = 255 - (191 - (sr >> 1)) * (255 - dr) * div_2_255;
             }
 
-            if (g1 < 128) {
-                gO = ((g2 >> 1) + 64) * g1 * div_2_255;
+            if (dg < 128) {
+                og = ((sg >> 1) + 64) * dg * div_2_255;
             } else {
-                gO = 255 - (191 - (g2 >> 1)) * (255 - g1) * div_2_255;
+                og = 255 - (191 - (sg >> 1)) * (255 - dg) * div_2_255;
             }
 
-            if (b1 < 128) {
-                bO = ((b2 >> 1) + 64) * b1 * div_2_255;
+            if (db < 128) {
+                ob = ((sb >> 1) + 64) * db * div_2_255;
             } else {
-                bO = 255 - (191 - (b2 >> 1)) * (255 - b1) * div_2_255;
+                ob = 255 - (191 - (sb >> 1)) * (255 - db) * div_2_255;
             }
         }
 
         function _hardlight() {
-            if (r2 < 128) {
-                rO = r1 * r2 * div_2_255;
+            if (sr < 128) {
+                or = dr * sr * div_2_255;
             } else {
-                rO = 255 - (255 - r1) * (255 - r2) * div_2_255;
+                or = 255 - (255 - dr) * (255 - sr) * div_2_255;
             }
 
-            if (g2 < 128) {
-                gO = g1 * g2 * div_2_255;
+            if (sg < 128) {
+                og = dg * sg * div_2_255;
             } else {
-                gO = 255 - (255 - g1) * (255 - g2) * div_2_255;
+                og = 255 - (255 - dg) * (255 - sg) * div_2_255;
             }
 
-            if (b2 < 128) {
-                bO = b1 * b2 * div_2_255;
+            if (sb < 128) {
+                ob = db * sb * div_2_255;
             } else {
-                bO = 255 - (255 - b1) * (255 - b2) * div_2_255;
+                ob = 255 - (255 - db) * (255 - sb) * div_2_255;
             }
         }
 
         function _colordodge() {
-            r1 = (r1 << 8) / (255 - r2);
-            g1 = (g1 << 8) / (255 - g2);
-            b1 = (b1 << 8) / (255 - b2);
+            var dr1 = (dr << 8) / (255 - sr),
+                dg1 = (dg << 8) / (255 - sg),
+                db1 = (db << 8) / (255 - sb);
 
-            rO = (r1 > 255 || r2 === 255) ? 255 : r1;
-            gO = (g1 > 255 || g2 === 255) ? 255 : g1;
-            bO = (b1 > 255 || b2 === 255) ? 255 : b1;
+            or = (dr1 > 255 || sr === 255) ? 255 : dr1;
+            og = (dg1 > 255 || sg === 255) ? 255 : dg1;
+            ob = (db1 > 255 || sb === 255) ? 255 : db1;
         }
 
         function _colorburn() {
-            r1 = 255 - ((255 - r1) << 8) / r2;
-            g1 = 255 - ((255 - g1) << 8) / g2;
-            b1 = 255 - ((255 - b1) << 8) / b2;
+            var dr1 = 255 - ((255 - dr) << 8) / sr,
+                dg1 = 255 - ((255 - dg) << 8) / sg,
+                db1 = 255 - ((255 - db) << 8) / sb;
 
-            rO = (r1 < 0 || r2 === 0) ? 0 : r1;
-            gO = (g1 < 0 || g2 === 0) ? 0 : g1;
-            bO = (b1 < 0 || b2 === 0) ? 0 : b1;
+            or = (dr1 < 0 || sr === 0) ? 0 : dr1;
+            og = (dg1 < 0 || sg === 0) ? 0 : dg1;
+            ob = (db1 < 0 || sb === 0) ? 0 : db1;
         }
 
         function _linearlight() {
-            r1 = 2 * r2 + r1 - 256;
-            g1 = 2 * g2 + g1 - 256;
-            b1 = 2 * b2 + b1 - 256;
+            var dr1 = 2 * sr + dr - 256,
+                dg1 = 2 * sg + dg - 256,
+                db1 = 2 * sb + db - 256;
 
-            rO = (r1 < 0 || (r2 < 128 && r1 < 0)) ? 0 : (r1 > 255 ? 255 : r1);
-            gO = (g1 < 0 || (g2 < 128 && g1 < 0)) ? 0 : (g1 > 255 ? 255 : g1);
-            bO = (b1 < 0 || (b2 < 128 && b1 < 0)) ? 0 : (b1 > 255 ? 255 : b1);
+            or = (dr1 < 0 || (sr < 128 && dr1 < 0)) ? 0 : (dr1 > 255 ? 255 : dr1);
+            og = (dg1 < 0 || (sg < 128 && dg1 < 0)) ? 0 : (dg1 > 255 ? 255 : dg1);
+            ob = (db1 < 0 || (sb < 128 && db1 < 0)) ? 0 : (db1 > 255 ? 255 : db1);
         }
 
         function _vividlight() {
             var a;
 
-            if (r2 < 128) {
-                if (r2) {
-                    a = 255 - ((255 - r1) << 8) / (2 * r2);
-                    rO = a < 0 ? 0 : a;
+            if (sr < 128) {
+                if (sr) {
+                    a = 255 - ((255 - dr) << 8) / (2 * sr);
+                    or = a < 0 ? 0 : a;
                 } else {
-                    rO = 0;
+                    or = 0;
                 }
             } else {
-                a = 2 * r2 - 256;
+                a = 2 * sr - 256;
                 if (a < 255) {
-                    a = (r1 << 8) / (255 - a);
-                    rO = a > 255 ? 255 : a;
+                    a = (dr << 8) / (255 - a);
+                    or = a > 255 ? 255 : a;
                 } else {
-                    rO = a < 0 ? 0 : a;
+                    or = a < 0 ? 0 : a;
                 }
             }
 
-            if (g2 < 128) {
-                if (g2) {
-                    a = 255 - ((255 - g1) << 8) / (2 * g2);
-                    gO = a < 0 ? 0 : a;
+            if (sg < 128) {
+                if (sg) {
+                    a = 255 - ((255 - dg) << 8) / (2 * sg);
+                    og = a < 0 ? 0 : a;
                 } else {
-                    gO = 0;
+                    og = 0;
                 }
             } else {
-                a = 2 * g2 - 256;
+                a = 2 * sg - 256;
                 if (a < 255) {
-                    a = (g1 << 8) / (255 - a);
-                    gO = a > 255 ? 255 : a;
+                    a = (dg << 8) / (255 - a);
+                    og = a > 255 ? 255 : a;
                 } else {
-                    gO = a < 0 ? 0 : a;
+                    og = a < 0 ? 0 : a;
                 }
             }
 
-            if (b2 < 128) {
-                if (b2) {
-                    a = 255 - ((255 - b1) << 8) / (2 * b2);
-                    bO = a < 0 ? 0 : a;
+            if (sb < 128) {
+                if (sb) {
+                    a = 255 - ((255 - db) << 8) / (2 * sb);
+                    ob = a < 0 ? 0 : a;
                 } else {
-                    bO = 0;
+                    ob = 0;
                 }
             } else {
-                a = 2 * b2 - 256;
+                a = 2 * sb - 256;
                 if (a < 255) {
-                    a = (b1 << 8) / (255 - a);
-                    bO = a > 255 ? 255 : a;
+                    a = (db << 8) / (255 - a);
+                    ob = a > 255 ? 255 : a;
                 } else {
-                    bO = a < 0 ? 0 : a;
+                    ob = a < 0 ? 0 : a;
                 }
             }
         }
@@ -371,90 +371,90 @@
         function _pinlight() {
             var a;
 
-            if (r2 < 128) {
-                a = 2 * r2;
-                rO = r1 < a ? r1 : a;
+            if (sr < 128) {
+                a = 2 * sr;
+                or = dr < a ? dr : a;
             } else {
-                a = 2 * r2 - 256;
-                rO = r1 > a ? r1 : a;
+                a = 2 * sr - 256;
+                or = dr > a ? dr : a;
             }
 
-            if (g2 < 128) {
-                a = 2 * g2;
-                gO = g1 < a ? g1 : a;
+            if (sg < 128) {
+                a = 2 * sg;
+                og = dg < a ? dg : a;
             } else {
-                a = 2 * g2 - 256;
-                gO = g1 > a ? g1 : a;
+                a = 2 * sg - 256;
+                og = dg > a ? dg : a;
             }
 
-            if (b2 < 128) {
-                a = 2 * b2;
-                bO = b1 < a ? b1 : a;
+            if (sb < 128) {
+                a = 2 * sb;
+                ob = db < a ? db : a;
             } else {
-                a = 2 * b2 - 256;
-                bO = b1 > a ? b1 : a;
+                a = 2 * sb - 256;
+                ob = db > a ? db : a;
             }
         }
 
         function _hardmix() {
             var a;
 
-            if (r2 < 128) {
-                rO = (255 - ((255 - r1) << 8) / (2 * r2) < 128 || r2 === 0) ? 0 : 255;
+            if (sr < 128) {
+                or = (255 - ((255 - dr) << 8) / (2 * sr) < 128 || sr === 0) ? 0 : 255;
             } else {
-                a = 2 * r2 - 256;
-                rO = (a < 255 && (r1 << 8) / (255 - a) < 128) ? 0 : 255;
+                a = 2 * sr - 256;
+                or = (a < 255 && (dr << 8) / (255 - a) < 128) ? 0 : 255;
             }
 
-            if (g2 < 128) {
-                gO = (255 - ((255 - g1) << 8) / (2 * g2) < 128 || g2 === 0) ? 0 : 255;
+            if (sg < 128) {
+                og = (255 - ((255 - dg) << 8) / (2 * sg) < 128 || sg === 0) ? 0 : 255;
             } else {
-                a = 2 * g2 - 256;
-                gO = (a < 255 && (g1 << 8) / (255 - a) < 128) ? 0 : 255;
+                a = 2 * sg - 256;
+                og = (a < 255 && (dg << 8) / (255 - a) < 128) ? 0 : 255;
             }
 
-            if (b2 < 128) {
-                bO = (255 - ((255 - b1) << 8) / (2 * b2) < 128 || b2 === 0) ? 0 : 255;
+            if (sb < 128) {
+                ob = (255 - ((255 - db) << 8) / (2 * sb) < 128 || sb === 0) ? 0 : 255;
             } else {
-                a = 2 * b2 - 256;
-                bO = (a < 255 && (b1 << 8) / (255 - a) < 128) ? 0 : 255;
+                a = 2 * sb - 256;
+                ob = (a < 255 && (db << 8) / (255 - a) < 128) ? 0 : 255;
             }
         }
 
         function _hue() {
-            var hcl1 = rgbToHsy(r1, g1, b1),
-                hcl2 = rgbToHsy(r2, g2, b2),
+            var hcl1 = rgbToHsy(dr, dg, db),
+                hcl2 = rgbToHsy(sr, sg, sb),
                 rgb = hsyToRgb(hcl2[0], hcl1[1], hcl1[2]);
-            rO = rgb[0];
-            gO = rgb[1];
-            bO = rgb[2];
+            or = rgb[0];
+            og = rgb[1];
+            ob = rgb[2];
         }
 
         function _saturation() {
-            var hcl1 = rgbToHsy(r1, g1, b1),
-                hcl2 = rgbToHsy(r2, g2, b2),
+            var hcl1 = rgbToHsy(dr, dg, db),
+                hcl2 = rgbToHsy(sr, sg, sb),
                 rgb = hsyToRgb(hcl1[0], hcl2[1], hcl1[2]);
-            rO = rgb[0];
-            gO = rgb[1];
-            bO = rgb[2];
+            or = rgb[0];
+            og = rgb[1];
+            ob = rgb[2];
         }
 
         function _lightness() {
-            var hcl1 = rgbToHsy(r1, g1, b1),
-                hcl2 = rgbToHsy(r2, g2, b2),
+            var hcl1 = rgbToHsy(dr, dg, db),
+                hcl2 = rgbToHsy(sr, sg, sb),
                 rgb = hsyToRgb(hcl1[0], hcl1[1], hcl2[2]);
-            rO = rgb[0];
-            gO = rgb[1];
-            bO = rgb[2];
+            or = rgb[0];
+            og = rgb[1];
+            ob = rgb[2];
         }
 
         function _color() {
-            var hcl1 = rgbToHsy(r1, g1, b1),
-                hcl2 = rgbToHsy(r2, g2, b2),
+            var hcl1 = rgbToHsy(dr, dg, db),
+                hcl2 = rgbToHsy(sr, sg, sb),
                 rgb = hsyToRgb(hcl2[0], hcl2[1], hcl1[2]);
-            rO = rgb[0];
-            gO = rgb[1];
-            bO = rgb[2];
+            or = rgb[0];
+            og = rgb[1];
+            ob = rgb[2];
         }
 
         blend_fn = {
@@ -502,18 +502,19 @@
                         pix = (y * width + x) * 4;
                         pixIn = ((y - dy) * options.width + x - dx) * 4;
 
-                        r1 = inData[pix];
-                        g1 = inData[pix + 1];
-                        b1 = inData[pix + 2];
-                        r2 = data2[pixIn];
-                        g2 = data2[pixIn + 1];
-                        b2 = data2[pixIn + 2];
+                        dr = inData[pix];
+                        dg = inData[pix + 1];
+                        db = inData[pix + 2];
+
+                        sr = data2[pixIn];
+                        sg = data2[pixIn + 1];
+                        sb = data2[pixIn + 2];
 
                         fn();
 
-                        outData[pix] = rO;
-                        outData[pix + 1] = gO;
-                        outData[pix + 2] = bO;
+                        outData[pix] = or;
+                        outData[pix + 1] = og;
+                        outData[pix + 2] = ob;
                         outData[pix + 3] = inData[pix + 3];
 
                         a = amount * data2[pixIn + 3] / 255;
