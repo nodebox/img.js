@@ -491,7 +491,7 @@
                 w = min(width, options.width),
                 h = min(height, options.height),
                 data2 = options.data,
-                amount = options.amount || 1,
+                amount = options.amount === 0 ? 0 : options.amount || 1,
                 fn = blend_fn[options.type || "normal"],
                 dx = options.dx || 0,
                 dy = options.dy || 0;
