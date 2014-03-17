@@ -491,7 +491,7 @@
                 w = min(width, options.width),
                 h = min(height, options.height),
                 data2 = options.data,
-                amount = options.amount === 0 ? 0 : options.amount || 1,
+                opacity = options.opacity === 0 ? 0 : options.opacity || 1,
                 fn = blend_fn[options.type || "normal"],
                 dx = options.dx || 0,
                 dy = options.dy || 0;
@@ -517,7 +517,7 @@
                         outData[pix + 2] = ob;
                         outData[pix + 3] = inData[pix + 3];
 
-                        a = amount * data2[pixIn + 3] / 255;
+                        a = opacity * data2[pixIn + 3] / 255;
                         if (a < 1) {
                             a2 = 1 - a;
                             outData[pix] = (inData[pix] * a2 + outData[pix] * a);

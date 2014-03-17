@@ -195,7 +195,7 @@
             }
             layer = layerData[i];
             blendData = layer.img.getContext('2d').getImageData(0, 0, layer.img.width, layer.img.height);
-            layerOptions = {data: blendData.data, width: layer.img.width, height: layer.img.height, amount: layer.opacity, dx: layer.x, dy: layer.y};
+            layerOptions = {data: blendData.data, width: layer.img.width, height: layer.img.height, opacity: layer.opacity, dx: layer.x, dy: layer.y};
             blend[layer.blendmode](baseData.data, outData.data, width, height, layerOptions);
         }
 
