@@ -1,12 +1,19 @@
 /*jslint nomen:true */
-/*global _, async, console, Image, document, module, define, require, window, process */
+/*global _, async, console, Image, HTMLCanvasElement, document, module, define, require, window, process */
 
 (function () {
     'use strict';
 
-    var Canvas, CanvasRenderer, Layer, img,
+    var Canvas, CanvasRenderer, Layer, img, colors,
         DEFAULT_WIDTH = 800,
-        DEFAULT_HEIGHT = 800;
+        DEFAULT_HEIGHT = 800,
+
+        TYPE_PATH = "path",
+        TYPE_IMAGE = "image",
+        TYPE_CANVAS = "canvas",
+        TYPE_FILL = "fill";
+
+    colors = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'transparent', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'];
 
     function clamp(val, min, max) {
         return Math.min(max, Math.max(min, val));
@@ -14,6 +21,91 @@
 
     function passThrough(canvas, callback) {
         callback(null, canvas);
+    }
+
+    function toColor(v1, v2, v3, v4, v5) {
+        var _r, _g, _b, _a, R, G, B, rgb, options;
+        if (v1 === undefined) {
+            _r = _g = _b = 0;
+            _a = 1;
+        } else if (Array.isArray(v1)) {
+            options = v2 || {};
+            _r = v1[0] !== undefined ? v1[0] : 0;
+            _g = v1[1] !== undefined ? v1[1] : 0;
+            _b = v1[2] !== undefined ? v1[2] : 0;
+            _a = v1[3] !== undefined ? v1[3] : options.base || 1;
+        } else if (v1.r !== undefined) {
+            options = v2 || {};
+            _r = v1.r;
+            _g = v1.g;
+            _b = v1.b;
+            _a = v1.a !== undefined ? v1.a : options.base || 1;
+        } else if (typeof v1 === 'string') {
+            if (v1.indexOf('#') === 0) { return v1; }
+            if (v1.indexOf('rgb') === 0) { return v1; }
+            if (colors.indexOf(v1) !== -1) { return v1; }
+        } else if (typeof v1 === 'number') {
+            if (arguments.length === 1) { // Grayscale value
+                _r = _g = _b = v1;
+                _a = 1;
+            } else if (arguments.length === 2) { // Gray and alpha or options
+                _r = _g = _b = v1;
+                if (typeof v2 === 'number') {
+                    _a = v2;
+                } else {
+                    options = v2;
+                    _a = options.base || 1;
+                }
+            } else if (arguments.length === 3) { // RGB or gray, alpha and options
+                if (typeof v3 === 'number') {
+                    _r = v1;
+                    _g = v2;
+                    _b = v3;
+                    _a = 1;
+                } else {
+                    _r = _g = _b = v1;
+                    _a = v2;
+                    options = v3;
+                }
+            } else if (arguments.length === 4) { // RGB and alpha or options
+                _r = v1;
+                _g = v2;
+                _b = v3;
+                if (typeof v4 === 'number') {
+                    _a = v4;
+                } else {
+                    options = v4 || {};
+                    _a = options.base || 1;
+                }
+            } else { // RGBA + options
+                _r = v1;
+                _g = v2;
+                _b = v3;
+                _a = v4;
+                options = v5;
+            }
+        }
+
+        if (!(typeof _r === "number" &&
+            typeof _g === "number" &&
+            typeof _b === "number" &&
+            typeof _a === "number")) {
+            throw new Error("Invalid color arguments");
+        }
+
+        options = options || {};
+
+        // The base option allows you to specify values in a different range.
+        if (options.base !== undefined) {
+            _r /= options.base;
+            _g /= options.base;
+            _b /= options.base;
+            _a /= options.base;
+        }
+        R = Math.round(_r * 255);
+        G = Math.round(_g * 255);
+        B = Math.round(_b * 255);
+        return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + _a + ')';
     }
 
     function createImageData(ctx, width, height) {
@@ -24,8 +116,23 @@
         }
     }
 
-    Layer = function (img) {
-        this.img = img;
+    function findType(data) {
+        if (typeof data === 'string') {
+            return TYPE_PATH;
+        } else if (data instanceof Image) {
+            return TYPE_IMAGE;
+        } else if (data instanceof HTMLCanvasElement) {
+            return TYPE_CANVAS;
+        } else if (data.r !== undefined && data.g !== undefined && data.b !== undefined && data.a !== undefined) {
+            return TYPE_FILL;
+        }
+        throw new Error("Cannot establish type for data ", data);
+    }
+
+    Layer = function (data, type) {
+        if (!type) { type = findType(data); }
+        this.data = data;
+        this.type = type;
         this.opacity = 1.0;
         this.blendmode = "normal";
         this.mask = new Canvas();
@@ -44,6 +151,22 @@
         });
     };
 
+    Layer.fromFile = function (filename) {
+        return new Layer(filename, TYPE_PATH);
+    };
+
+    Layer.fromImage = function (image) {
+        return new Layer(image, TYPE_IMAGE);
+    };
+
+    Layer.fromCanvas = function (dcanvas) {
+        return new Layer(dcanvas, TYPE_CANVAS);
+    };
+
+    Layer.fromColor = function (color) {
+        return new Layer(toColor(color), TYPE_FILL);
+    };
+
     Canvas = function (width, height) {
         if (!width) { width = DEFAULT_WIDTH; }
         if (!height) { height = DEFAULT_HEIGHT; }
@@ -53,8 +176,27 @@
         this.layers = [];
     };
 
-    Canvas.prototype.addLayer = function (filename) {
-        var layer = new Layer(filename);
+    Canvas.prototype.addLayer = function (arg0) {
+        var layer;
+
+        try {
+            return this.addColorLayer.apply(this, arguments);
+        } catch (err) {
+        }
+
+        if (arguments.length === 1) {
+            if (typeof arg0 === "string") {
+                layer = new Layer(arg0, TYPE_PATH);
+            }
+        }
+
+        this.layers.push(layer);
+        return layer;
+    };
+
+    Canvas.prototype.addColorLayer = function () {
+        var c = toColor.apply(null, arguments),
+            layer = new Layer(c, TYPE_FILL);
         this.layers.push(layer);
         return layer;
     };
@@ -65,7 +207,7 @@
 
     CanvasRenderer = {};
 
-    CanvasRenderer.load = function (src) {
+    CanvasRenderer.loadFile = function (src) {
         return function (_, callback) {
             var source = new Image(),
                 dCanvas = document.createElement('canvas'),
@@ -79,6 +221,29 @@
             };
             source.src = src;
         };
+    };
+
+    CanvasRenderer.generateColor = function (canvas, layer) {
+        return function (_, callback) {
+            var width = layer.width !== undefined ? layer.width : canvas.width,
+                height = layer.height !== undefined ? layer.height : canvas.height,
+                dCanvas = document.createElement('canvas'),
+                ctx = dCanvas.getContext('2d');
+
+            dCanvas.width = width;
+            dCanvas.height = height;
+            ctx.fillStyle = layer.data;
+            ctx.fillRect(0, 0, width, height);
+            callback(null, dCanvas);
+        };
+    };
+
+    CanvasRenderer.load = function (canvas, layer) {
+        if (layer.type === TYPE_PATH) {
+            return CanvasRenderer.loadFile(layer.data);
+        } else if (layer.type === TYPE_FILL) {
+            return CanvasRenderer.generateColor(canvas, layer);
+        }
     };
 
     CanvasRenderer._processNoWorker = function (filters) {
@@ -162,13 +327,15 @@
         };
     };
 
-    CanvasRenderer.processLayer = function (layer, callback) {
-        async.compose(
-            CanvasRenderer.processImage(layer.filters),
-            CanvasRenderer.processMask(layer.mask),
-            CanvasRenderer.load(layer.img)
-        )(null, callback);
-    };
+    function processLayers(canvas) {
+        return function (layer, callback) {
+            async.compose(
+                CanvasRenderer.processImage(layer.filters),
+                CanvasRenderer.processMask(layer.mask),
+                CanvasRenderer.load(canvas, layer)
+            )(null, callback);
+        };
+    }
 
     CanvasRenderer.composite = function (canvas, layerImages, callback) {
         if (!layerImages) { callback(null); }
@@ -203,7 +370,7 @@
 
     CanvasRenderer.render = function (canvas, callback) {
         async.map(canvas.layers,
-              CanvasRenderer.processLayer, function (err, layerImages) {
+              processLayers(canvas), function (err, layerImages) {
                 if (callback) {
                     CanvasRenderer.composite(canvas, layerImages, callback);
                 }
