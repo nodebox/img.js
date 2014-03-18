@@ -486,19 +486,35 @@
             "color": _color
         };
 
+        function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
+            var right1 = x1 + w1,
+                bottom1 = y1 + h1,
+                right2 = x2 + w2,
+                bottom2 = y2 + h2,
+
+                x = max(x1, x2),
+                y = max(y1, y2),
+                w = max(min(right1, right2) - x, 0),
+                h = max(min(bottom1, bottom2) - y, 0);
+            return [x, y, w, h];
+        }
+
         (function () {
             var pix, pixIn, x, y, a, a2,
-                w = min(width, options.width),
-                h = min(height, options.height),
                 data2 = options.data,
                 opacity = options.opacity === 0 ? 0 : options.opacity || 1,
                 fn = blend_fn[options.type || "normal"],
                 dx = options.dx || 0,
-                dy = options.dy || 0;
+                dy = options.dy || 0,
+                ri = rectIntersect(0, 0, width, height, dx, dy, options.width, options.height),
+                xi = ri[0],
+                yi = ri[1],
+                wi = ri[2],
+                hi = ri[3];
 
             for (y = 0; y < height; y += 1) {
                 for (x = 0; x < width; x += 1) {
-                    if (y >= dy && y < max(height, h + dy) && x >= dx && x < max(width, w + dx)) {
+                    if (y >= yi && x >= xi && x < xi + wi && y < yi + hi) {
                         pix = (y * width + x) * 4;
                         pixIn = ((y - dy) * options.width + x - dx) * 4;
 
