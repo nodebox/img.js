@@ -235,6 +235,10 @@
             }
         }
 
+        if (!layer) {
+            throw new Error("Error creating layer.");
+        }
+
         this.layers.push(layer);
         return layer;
     };
