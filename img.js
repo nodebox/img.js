@@ -109,8 +109,8 @@
         return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + _a + ')';
     }
 
-    function toGradientData(v1, v2, v3, v4) {
-        var startColor, endColor, type, spread, d,
+    function toGradientData(v1, v2, v3, v4, v5) {
+        var startColor, endColor, type, rotation, spread, d,
             data = {};
 
         if (arguments.length === 1) {
@@ -118,21 +118,36 @@
             startColor = d.startColor;
             endColor = d.endColor;
             type = d.type;
+            rotation = d.rotation;
             spread = d.spread;
         } else if (arguments.length >= 2) {
             startColor = v1;
             endColor = v2;
             type = "linear";
+            rotation = 0;
             spread = 0;
             if (arguments.length === 3) {
                 if (typeof v3 === "string") {
                     type = v3;
                 } else if (typeof v3 === "number") {
-                    spread = v3;
+                    rotation = v3;
                 }
             } else if (arguments.length === 4) {
+                if (typeof v3 === "number") {
+                    rotation = v3;
+                    spread = v4;
+                } else if (v3 === "linear") {
+                    rotation = v4;
+                } else if (v3 === "radial") {
+                    type = v3;
+                    spread = v4;
+                } else {
+                    throw new Error("Wrong argument provided: " + v3);
+                }
+            } else if (arguments.length === 5) {
                 type = v3;
-                spread = v4;
+                rotation = v4;
+                spread = v5;
             }
         }
 
@@ -141,13 +156,13 @@
 
         try {
             data.startColor = toColor(startColor);
-        } catch (err) {
+        } catch (e1) {
             throw new Error("startColor is not a valid color: " + startColor);
         }
 
         try {
             data.endColor = toColor(endColor);
-        } catch (err) {
+        } catch (e2) {
             throw new Error("endColor is not a valid color: " + endColor);
         }
 
@@ -161,6 +176,14 @@
         if (spread === undefined) { spread = 0; }
         if (typeof spread !== "number") {
             throw new Error("Spread value is not a number: " + spread);
+        }
+
+        if (type === "linear") {
+            if (rotation === undefined) { rotation = 0; }
+            if (typeof rotation !== "number") {
+                throw new Error("Rotation value is not a number: " + rotation);
+            }
+            data.rotation = rotation;
         }
 
         data.spread = clamp(spread, 0, 0.99);
@@ -245,12 +268,12 @@
 
         try {
             return this.addGradientLayer.apply(this, arguments);
-        } catch (err) {
+        } catch (e1) {
         }
 
         try {
             return this.addColorLayer.apply(this, arguments);
-        } catch (err) {
+        } catch (e2) {
         }
 
         if (arguments.length === 1) {
@@ -320,7 +343,8 @@
 
     CanvasRenderer.generateGradient = function (canvas, layer) {
         return function (_, callback) {
-            var width = layer.width !== undefined ? layer.width : canvas.width,
+            var grd, x1, y1, x2, y2,
+                width = layer.width !== undefined ? layer.width : canvas.width,
                 height = layer.height !== undefined ? layer.height : canvas.height,
                 cx = width / 2,
                 cy = height / 2,
@@ -328,12 +352,42 @@
                 ctx = dCanvas.getContext('2d'),
                 data = layer.data,
                 type = data.type || "linear",
-                grd;
+                rotateDegrees = data.rotation || 0;
 
             if (type === "radial") {
                 grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(width, height) / 2);
             } else {
-                grd = ctx.createLinearGradient(width / 2, 0, width / 2, height);
+                // Rotation code taken from html5-canvas-gradient-creator:
+                // Website: http://victorblog.com/html5-canvas-gradient-creator/
+                // Code: https://github.com/evictor/html5-canvas-gradient-creator/blob/master/js/src/directive/previewCanvas.coffee
+                if (rotateDegrees < 0) { rotateDegrees += 360; }
+                if ((0 <= rotateDegrees && rotateDegrees < 45)) {
+                    x1 = 0;
+                    y1 = height / 2 * (45 - rotateDegrees) / 45;
+                    x2 = width;
+                    y2 = height - y1;
+                } else if ((45 <= rotateDegrees && rotateDegrees < 135)) {
+                    x1 = width * (rotateDegrees - 45) / (135 - 45);
+                    y1 = 0;
+                    x2 = width - x1;
+                    y2 = height;
+                } else if ((135 <= rotateDegrees && rotateDegrees < 225)) {
+                    x1 = width;
+                    y1 = height * (rotateDegrees - 135) / (225 - 135);
+                    x2 = 0;
+                    y2 = height - y1;
+                } else if ((225 <= rotateDegrees && rotateDegrees < 315)) {
+                    x1 = width * (1 - (rotateDegrees - 225) / (315 - 225));
+                    y1 = height;
+                    x2 = width - x1;
+                    y2 = 0;
+                } else if (315 <= rotateDegrees) {
+                    x1 = 0;
+                    y1 = height - height / 2 * (rotateDegrees - 315) / (360 - 315);
+                    x2 = width;
+                    y2 = height - y1;
+                }
+                grd = ctx.createLinearGradient(x1, y1, x2, y2);
             }
             grd.addColorStop(data.spread || 0, data.startColor);
             grd.addColorStop(1, data.endColor);
