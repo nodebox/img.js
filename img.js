@@ -12,7 +12,7 @@
         TYPE_IMAGE = "image",
         TYPE_CANVAS = "canvas",
         TYPE_FILL = "fill",
-        TYPE_RADIAL = "radial";
+        TYPE_GRADIENT = "gradient";
 
     colors = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'transparent', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'];
 
@@ -109,19 +109,31 @@
         return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + _a + ')';
     }
 
-    function toRadialGradientData(v1, v2, v3) {
-        var startColor, endColor, spread, d,
+    function toGradientData(v1, v2, v3, v4) {
+        var startColor, endColor, type, spread, d,
             data = {};
 
         if (arguments.length === 1) {
             d = v1 || {};
             startColor = d.startColor;
             endColor = d.endColor;
+            type = d.type;
             spread = d.spread;
-        } else {
+        } else if (arguments.length >= 2) {
             startColor = v1;
             endColor = v2;
-            spread = v3;
+            type = "linear";
+            spread = 0;
+            if (arguments.length === 3) {
+                if (typeof v3 === "string") {
+                    type = v3;
+                } else if (typeof v3 === "number") {
+                    spread = v3;
+                }
+            } else if (arguments.length === 4) {
+                type = v3;
+                spread = v4;
+            }
         }
 
         if (!startColor && startColor !== 0) { throw new Error("No startColor was given."); }
@@ -139,7 +151,19 @@
             throw new Error("endColor is not a valid color: " + endColor);
         }
 
-        data.spread = spread === undefined ? 0 : clamp(spread, 0, 0.99);
+        if (type === undefined) { type = "linear"; }
+        if (type !== "linear" && type !== "radial") {
+            throw new Error("Unknown gradient type: " + type);
+        }
+
+        data.type = type;
+
+        if (spread === undefined) { spread = 0; }
+        if (typeof spread !== "number") {
+            throw new Error("Spread value is not a number: " + spread);
+        }
+
+        data.spread = clamp(spread, 0, 0.99);
 
         return data;
     }
@@ -203,8 +227,8 @@
         return new Layer(toColor(color), TYPE_FILL);
     };
 
-    Layer.fromRadialGradient = function () {
-        return new Layer(toRadialGradientData.apply(null, arguments), TYPE_RADIAL);
+    Layer.fromGradient = function () {
+        return new Layer(toGradientData.apply(null, arguments), TYPE_GRADIENT);
     };
 
     Canvas = function (width, height) {
@@ -220,7 +244,7 @@
         var layer;
 
         try {
-            return this.addRadialGradientLayer.apply(this, arguments);
+            return this.addGradientLayer.apply(this, arguments);
         } catch (err) {
         }
 
@@ -250,9 +274,9 @@
         return layer;
     };
 
-    Canvas.prototype.addRadialGradientLayer = function () {
-        var c = toRadialGradientData.apply(null, arguments),
-            layer = new Layer(c, TYPE_RADIAL);
+    Canvas.prototype.addGradientLayer = function () {
+        var c = toGradientData.apply(null, arguments),
+            layer = new Layer(c, TYPE_GRADIENT);
         this.layers.push(layer);
         return layer;
     };
@@ -294,7 +318,7 @@
         };
     };
 
-    CanvasRenderer.generateRadialGradient = function (canvas, layer) {
+    CanvasRenderer.generateGradient = function (canvas, layer) {
         return function (_, callback) {
             var width = layer.width !== undefined ? layer.width : canvas.width,
                 height = layer.height !== undefined ? layer.height : canvas.height,
@@ -303,9 +327,14 @@
                 dCanvas = document.createElement('canvas'),
                 ctx = dCanvas.getContext('2d'),
                 data = layer.data,
+                type = data.type || "linear",
                 grd;
 
-            grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(width, height) / 2);
+            if (type === "radial") {
+                grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(width, height) / 2);
+            } else {
+                grd = ctx.createLinearGradient(width / 2, 0, width / 2, height);
+            }
             grd.addColorStop(data.spread || 0, data.startColor);
             grd.addColorStop(1, data.endColor);
 
@@ -322,8 +351,8 @@
             return CanvasRenderer.loadFile(layer.data);
         } else if (layer.type === TYPE_FILL) {
             return CanvasRenderer.generateColor(canvas, layer);
-        } else if (layer.type === TYPE_RADIAL) {
-            return CanvasRenderer.generateRadialGradient(canvas, layer);
+        } else if (layer.type === TYPE_GRADIENT) {
+            return CanvasRenderer.generateGradient(canvas, layer);
         }
     };
 
