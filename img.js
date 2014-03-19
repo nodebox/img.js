@@ -11,7 +11,8 @@
         TYPE_PATH = "path",
         TYPE_IMAGE = "image",
         TYPE_CANVAS = "canvas",
-        TYPE_FILL = "fill";
+        TYPE_FILL = "fill",
+        TYPE_RADIAL = "radial";
 
     colors = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'transparent', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'];
 
@@ -108,6 +109,41 @@
         return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + _a + ')';
     }
 
+    function toRadialGradientData(v1, v2, v3) {
+        var startColor, endColor, spread, d,
+            data = {};
+
+        if (arguments.length === 1) {
+            d = v1 || {};
+            startColor = d.startColor;
+            endColor = d.endColor;
+            spread = d.spread;
+        } else {
+            startColor = v1;
+            endColor = v2;
+            spread = v3;
+        }
+
+        if (!startColor && startColor !== 0) { throw new Error("No startColor was given."); }
+        if (!endColor && endColor !== 0) { throw new Error("No endColor was given."); }
+
+        try {
+            data.startColor = toColor(startColor);
+        } catch (err) {
+            throw new Error("startColor is not a valid color: " + startColor);
+        }
+
+        try {
+            data.endColor = toColor(endColor);
+        } catch (err) {
+            throw new Error("endColor is not a valid color: " + endColor);
+        }
+
+        data.spread = spread === undefined ? 0 : clamp(spread, 0, 0.99);
+
+        return data;
+    }
+
     function createImageData(ctx, width, height) {
         if (ctx.createImageData) {
             return ctx.createImageData(width, height);
@@ -167,6 +203,10 @@
         return new Layer(toColor(color), TYPE_FILL);
     };
 
+    Layer.fromRadialGradient = function () {
+        return new Layer(toRadialGradientData.apply(null, arguments), TYPE_RADIAL);
+    };
+
     Canvas = function (width, height) {
         if (!width) { width = DEFAULT_WIDTH; }
         if (!height) { height = DEFAULT_HEIGHT; }
@@ -178,6 +218,11 @@
 
     Canvas.prototype.addLayer = function (arg0) {
         var layer;
+
+        try {
+            return this.addRadialGradientLayer.apply(this, arguments);
+        } catch (err) {
+        }
 
         try {
             return this.addColorLayer.apply(this, arguments);
@@ -197,6 +242,13 @@
     Canvas.prototype.addColorLayer = function () {
         var c = toColor.apply(null, arguments),
             layer = new Layer(c, TYPE_FILL);
+        this.layers.push(layer);
+        return layer;
+    };
+
+    Canvas.prototype.addRadialGradientLayer = function () {
+        var c = toRadialGradientData.apply(null, arguments),
+            layer = new Layer(c, TYPE_RADIAL);
         this.layers.push(layer);
         return layer;
     };
@@ -238,11 +290,36 @@
         };
     };
 
+    CanvasRenderer.generateRadialGradient = function (canvas, layer) {
+        return function (_, callback) {
+            var width = layer.width !== undefined ? layer.width : canvas.width,
+                height = layer.height !== undefined ? layer.height : canvas.height,
+                cx = width / 2,
+                cy = height / 2,
+                dCanvas = document.createElement('canvas'),
+                ctx = dCanvas.getContext('2d'),
+                data = layer.data,
+                grd;
+
+            grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(width, height) / 2);
+            grd.addColorStop(data.spread || 0, data.startColor);
+            grd.addColorStop(1, data.endColor);
+
+            dCanvas.width = width;
+            dCanvas.height = height;
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, width, height);
+            callback(null, dCanvas);
+        };
+    };
+
     CanvasRenderer.load = function (canvas, layer) {
         if (layer.type === TYPE_PATH) {
             return CanvasRenderer.loadFile(layer.data);
         } else if (layer.type === TYPE_FILL) {
             return CanvasRenderer.generateColor(canvas, layer);
+        } else if (layer.type === TYPE_RADIAL) {
+            return CanvasRenderer.generateRadialGradient(canvas, layer);
         }
     };
 
