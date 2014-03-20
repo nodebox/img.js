@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>img.js - Example canvas as mask layer</title>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/async/0.2.7/async.min.js"></script>
+    <script src="process.js"></script>
+    <script src="img.js"></script>
+    <script>
+        function drawEllipseByCenter(ctx, cx, cy, w, h) {
+            drawEllipse(ctx, cx - w / 2.0, cy - h / 2.0, w, h);
+        }
+
+        function drawEllipse(ctx, x, y, w, h) {
+            var kappa = .5522848,
+            ox = (w / 2) * kappa, // control point offset horizontal
+            oy = (h / 2) * kappa, // control point offset vertical
+            xe = x + w,           // x-end
+            ye = y + h,           // y-end
+            xm = x + w / 2,       // x-middle
+            ym = y + h / 2;       // y-middle
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, ym);
+            ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+            ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+            ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+            ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        window.onload = function () {
+            var layer, mask,
+                w = 360,
+                h = 360,
+                canvas = new img.Canvas(600, 450),
+                dCanvas = document.createElement('canvas'),
+                ctx = dCanvas.getContext('2d'),
+                canvas2 = new img.Canvas(650, 500);
+
+            layer = canvas.addLayer("images/img1.jpg");
+            layer.addFilter("coloradjust", {r: 0.25, g: 0.25});
+            layer = canvas.addLayer("images/img2.jpg");
+            layer.addFilter("coloradjust", {r: 0.30, g: 0.20, b: 0.35});
+
+            dCanvas.width = w;
+            dCanvas.height = h;
+            ctx.fillStyle = "grey";
+            drawEllipseByCenter(ctx, w / 2, h / 2, w, h)
+            mask = layer.mask.addLayer(dCanvas);
+
+            canvas2.addLayer("black", "cornflowerblue", 90, 0.65);
+            layer = canvas2.addLayer("black", "gold", 270, 0.65);
+            layer.blendmode = "screen";
+            layer = canvas2.addLayer("black", "crimson", 0, 0.65);
+            layer.blendmode = "screen";
+            layer = canvas2.addLayer("black", "honeydew", 180, 0.65);
+            layer.blendmode = "screen";
+            layer = canvas2.addLayer(canvas);
+            layer.blendmode = "lighten";
+            canvas2.render(function (c) {
+                document.body.appendChild(c);
+            });
+        };
+    </script>
+</head>
+<body id="root">
+</body>
+</html>
