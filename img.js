@@ -10,7 +10,7 @@
 
         TYPE_PATH = "path",
         TYPE_IMAGE = "image",
-        TYPE_CANVAS = "canvas",
+        TYPE_HTML_CANVAS = "htmlcanvas",
         TYPE_FILL = "fill",
         TYPE_GRADIENT = "gradient";
 
@@ -205,7 +205,7 @@
         } else if (data instanceof Image) {
             return TYPE_IMAGE;
         } else if (data instanceof HTMLCanvasElement) {
-            return TYPE_CANVAS;
+            return TYPE_HTML_CANVAS;
         } else if (data.r !== undefined && data.g !== undefined && data.b !== undefined && data.a !== undefined) {
             return TYPE_FILL;
         } else if (data.startColor !== undefined && data.endColor !== undefined) {
@@ -230,7 +230,6 @@
 
     Layer.prototype.addFilter = function (filter, options) {
         this.filters.push({
-            layer: this,
             name: filter,
             options: options
         });
@@ -244,8 +243,8 @@
         return new Layer(image, TYPE_IMAGE);
     };
 
-    Layer.fromCanvas = function (dcanvas) {
-        return new Layer(dcanvas, TYPE_CANVAS);
+    Layer.fromCanvas = function (dCanvas) {
+        return new Layer(dCanvas, TYPE_HTML_CANVAS);
     };
 
     Layer.fromColor = function (color) {
@@ -281,6 +280,8 @@
         if (arguments.length === 1) {
             if (typeof arg0 === "string") {
                 layer = new Layer(arg0, TYPE_PATH);
+            } else if (arg0 instanceof HTMLCanvasElement) {
+                layer = new Layer(arg0, TYPE_HTML_CANVAS);
             }
         }
 
@@ -325,6 +326,12 @@
                 callback(null, dCanvas);
             };
             source.src = src;
+        };
+    };
+
+    CanvasRenderer.loadHtmlCanvas = function (dCanvas) {
+        return function (_, callback) {
+            callback(null, dCanvas);
         };
     };
 
@@ -409,6 +416,8 @@
             return CanvasRenderer.generateColor(canvas, layer);
         } else if (layer.type === TYPE_GRADIENT) {
             return CanvasRenderer.generateGradient(canvas, layer);
+        } else if (layer.type === TYPE_HTML_CANVAS) {
+            return CanvasRenderer.loadHtmlCanvas(layer.data);
         }
     };
 
