@@ -282,6 +282,8 @@
                 layer = new Layer(arg0, TYPE_PATH);
             } else if (arg0 instanceof HTMLCanvasElement) {
                 layer = new Layer(arg0, TYPE_HTML_CANVAS);
+            } else if (arg0 instanceof Image) {
+                layer = new Layer(arg0, TYPE_IMAGE);
             }
         }
 
@@ -331,6 +333,18 @@
 
     CanvasRenderer.loadHtmlCanvas = function (dCanvas) {
         return function (_, callback) {
+            callback(null, dCanvas);
+        };
+    };
+
+    CanvasRenderer.loadImage = function (img) {
+        return function (_, callback) {
+            var dCanvas = document.createElement('canvas'),
+                ctx = dCanvas.getContext('2d');
+
+            dCanvas.width = img.width;
+            dCanvas.height = img.height;
+            ctx.drawImage(img, 0, 0, dCanvas.width, dCanvas.height);
             callback(null, dCanvas);
         };
     };
@@ -418,6 +432,8 @@
             return CanvasRenderer.generateGradient(canvas, layer);
         } else if (layer.type === TYPE_HTML_CANVAS) {
             return CanvasRenderer.loadHtmlCanvas(layer.data);
+        } else if (layer.type === TYPE_IMAGE) {
+            return CanvasRenderer.loadImage(layer.data);
         }
     };
 
