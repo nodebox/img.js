@@ -208,6 +208,8 @@
             return TYPE_CANVAS;
         } else if (data.r !== undefined && data.g !== undefined && data.b !== undefined && data.a !== undefined) {
             return TYPE_FILL;
+        } else if (data.startColor !== undefined && data.endColor !== undefined) {
+            return TYPE_GRADIENT;
         }
         throw new Error("Cannot establish type for data ", data);
     }
