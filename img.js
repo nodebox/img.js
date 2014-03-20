@@ -11,6 +11,7 @@
         TYPE_PATH = "path",
         TYPE_IMAGE = "image",
         TYPE_HTML_CANVAS = "htmlcanvas",
+        TYPE_CANVAS = "canvas",
         TYPE_FILL = "fill",
         TYPE_GRADIENT = "gradient";
 
@@ -206,6 +207,8 @@
             return TYPE_IMAGE;
         } else if (data instanceof HTMLCanvasElement) {
             return TYPE_HTML_CANVAS;
+        } else if (data instanceof Canvas) {
+            return TYPE_CANVAS;
         } else if (data.r !== undefined && data.g !== undefined && data.b !== undefined && data.a !== undefined) {
             return TYPE_FILL;
         } else if (data.startColor !== undefined && data.endColor !== undefined) {
@@ -243,8 +246,11 @@
         return new Layer(image, TYPE_IMAGE);
     };
 
-    Layer.fromCanvas = function (dCanvas) {
-        return new Layer(dCanvas, TYPE_HTML_CANVAS);
+    Layer.fromCanvas = function (canvas) {
+        if (canvas instanceof HTMLCanvasElement) {
+            return new Layer(canvas, TYPE_HTML_CANVAS);
+        }
+        return new Layer(canvas, TYPE_CANVAS);
     };
 
     Layer.fromColor = function (color) {
@@ -284,6 +290,8 @@
                 layer = new Layer(arg0, TYPE_HTML_CANVAS);
             } else if (arg0 instanceof Image) {
                 layer = new Layer(arg0, TYPE_IMAGE);
+            } else if (arg0 instanceof Canvas) {
+                layer = new Layer(arg0, TYPE_CANVAS);
             }
         }
 
@@ -334,6 +342,14 @@
     CanvasRenderer.loadHtmlCanvas = function (dCanvas) {
         return function (_, callback) {
             callback(null, dCanvas);
+        };
+    };
+
+    CanvasRenderer.loadCanvas = function (canvas) {
+        return function (_, callback) {
+            canvas.render(function (dCanvas) {
+                callback(null, dCanvas);
+            });
         };
     };
 
@@ -434,6 +450,8 @@
             return CanvasRenderer.loadHtmlCanvas(layer.data);
         } else if (layer.type === TYPE_IMAGE) {
             return CanvasRenderer.loadImage(layer.data);
+        } else if (layer.type === TYPE_CANVAS) {
+            return CanvasRenderer.loadCanvas(layer.data);
         }
     };
 
