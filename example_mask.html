@@ -18,7 +18,7 @@
             layer.addFilter("coloradjust", {r: 0.30, g: 0.20, b: 0.35});
             layer.opacity = 0.5;
 
-            mask = layer.mask.addLayer({startColor: "white", endColor: "black", spread: 0.97});
+            mask = layer.mask.addLayer({startColor: "white", endColor: "black", type: "radial", spread: 0.97});
             mask.width = mask.height = 360;
 
             canvas.render(function (c) {
