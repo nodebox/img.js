@@ -546,7 +546,7 @@
         };
     }
 
-    CanvasRenderer.merge = function (width, height, layerData) {
+    CanvasRenderer.merge = function (_ctx, width, height, layerData, callback) {
         var i, layer, baseData, blendData, outData, tmpData, layerOptions,
             dCanvas = document.createElement('canvas'),
             ctx = dCanvas.getContext('2d');
@@ -575,12 +575,19 @@
             blend[layer.blendmode](baseData.data, outData.data, width, height, layerOptions);
         }
 
-        return outData;
+        _ctx.putImageData(outData, 0, 0);
+        callback();
     };
 
     CanvasRenderer.composite = function (canvas, layerImages, callback) {
-        if (!layerImages) { callback(null); }
-        if (layerImages.length === 0) { callback(null); }
+        if (!layerImages) {
+            callback(null);
+            return;
+        }
+        if (layerImages.length === 0) {
+            callback(null);
+            return;
+        }
 
         var i, x, y, layer, layerImg, mergedData,
             dCanvas = document.createElement('canvas'),
@@ -614,11 +621,10 @@
         }
 
         if (layerImages.length > 1) {
-            mergedData = CanvasRenderer.merge(canvas.width, canvas.height, layerData);
-            ctx.putImageData(mergedData, 0, 0);
+            CanvasRenderer.merge(ctx, canvas.width, canvas.height, layerData, function () { callback(dCanvas); });
+        } else {
+            callback(dCanvas);
         }
-
-        callback(dCanvas);
     };
 
     CanvasRenderer.render = function (canvas, callback) {
