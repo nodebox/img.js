@@ -490,7 +490,7 @@
                 height = dCanvas.height,
                 inData = ctx.getImageData(0, 0, width, height),
                 outData = createImageData(ctx, width, height),
-                worker = new window.Worker('img.worker.control.js');
+                worker = new window.Worker('img.process.worker.control.js');
 
             worker.onmessage = function (e) {
                 outData = e.data.result;
