@@ -9,9 +9,9 @@
     process = function (inData, outData, width, height, options) {
 
         var blend_fn, R, G, B,
-            dr, dg, db,
-            sr, sg, sb,
-            or, og, ob,
+            sr, sg, sb, sa,
+            dr, dg, db, da,
+            or, og, ob, oa,
             max = Math.max,
             min = Math.min,
             div_2_255 = 2 / 255;
@@ -131,16 +131,34 @@
             ob = sb;
         }
 
+        function _svg_normal() {
+            or = sr + dr - dr * sa;
+            og = sg + dg - dg * sa;
+            ob = sb + db - db * sa;
+        }
+
         function _multiply() {
             or = dr * sr / 255;
             og = dg * sg / 255;
             ob = db * sb / 255;
         }
 
+        function _svg_multiply() {
+            or = sr * dr + sr * (1 - da) + dr * (1 - sa);
+            og = sg * dg + sg * (1 - da) + dg * (1 - sa);
+            ob = sb * db + sb * (1 - da) + db * (1 - sa);
+        }
+
         function _subtract() {
             or = max(dr - sr, 0);
             og = max(dg - sg, 0);
             ob = max(db - sb, 0);
+        }
+
+        function _svg_subtract() {
+            or = max(dr * sa - sr * da, 0) + sr * (1 - da) + dr * (1 - sa);
+            og = max(dg * sa - sg * da, 0) + sg * (1 - da) + dg * (1 - sa);
+            ob = max(db * sa - sb * da, 0) + sb * (1 - da) + db * (1 - sa);
         }
 
         function _divide() {
@@ -155,16 +173,34 @@
             ob = (255 - (((255 - db) * (255 - sb)) >> 8));
         }
 
+        function _svg_screen() {
+            or = sr + dr - sr * dr;
+            og = sg + dg - sg * dg;
+            ob = sb + db - sb * db;
+        }
+
         function _lighten() {
             or = dr > sr ? dr : sr;
             og = dg > sg ? dg : sg;
             ob = db > sb ? db : sb;
         }
 
+        function _svg_lighten() {
+            or = max(sr * da, dr * sa) + sr * (1 - da) + dr * (1 - sa);
+            og = max(sg * da, dg * sa) + sg * (1 - da) + dg * (1 - sa);
+            ob = max(sb * da, db * sa) + sb * (1 - da) + db * (1 - sa);
+        }
+
         function _darken() {
             or = dr < sr ? dr : sr;
             og = dg < sg ? dg : sg;
             ob = db < sb ? db : sb;
+        }
+
+        function _svg_darken() {
+            or = min(sr * da, dr * sa) + sr * (1 - da) + dr * (1 - sa);
+            og = min(sg * da, dg * sa) + sg * (1 - da) + dg * (1 - sa);
+            ob = min(sb * da, db * sa) + sb * (1 - da) + db * (1 - sa);
         }
 
         function _darkercolor() {
@@ -179,6 +215,21 @@
             }
         }
 
+        function _svg_darkercolor() {
+            if (dr * sa * 0.3 + dg * sa * 0.59 + db * sa * 0.11 <= sr * da * 0.3 + sg * da * 0.59 + sb * da * 0.11) {
+                or = dr * sa;
+                og = dg * sa;
+                ob = db * sa;
+            } else {
+                or = sr * da;
+                og = sg * da;
+                ob = sb * da;
+            }
+            or += sr * (1 - da) + dr * (1 - sa);
+            og += sg * (1 - da) + dg * (1 - sa);
+            ob += sb * (1 - da) + db * (1 - sa);
+        }
+
         function _lightercolor() {
             if (dr * 0.3 + dg * 0.59 + db * 0.11 > sr * 0.3 + sg * 0.59 + sb * 0.11) {
                 or = dr;
@@ -189,6 +240,21 @@
                 og = sg;
                 ob = sb;
             }
+        }
+
+        function _svg_lightercolor() {
+            if (dr * sa * 0.3 + dg * sa * 0.59 + db * sa * 0.11 > sr * da * 0.3 + sg * da * 0.59 + sb * da * 0.11) {
+                or = dr * sa;
+                og = dg * sa;
+                ob = db * sa;
+            } else {
+                or = sr * da;
+                og = sg * da;
+                ob = sb * da;
+            }
+            or += sr * (1 - da) + dr * (1 - sa);
+            og += sg * (1 - da) + dg * (1 - sa);
+            ob += sb * (1 - da) + db * (1 - sa);
         }
 
         function _lineardodge() {
@@ -217,10 +283,22 @@
             ob = ob < 0 ? -ob : ob;
         }
 
+        function _svg_difference() {
+            or = sr + dr - 2 * min(sr * da, dr * sa);
+            og = sg + dg - 2 * min(sg * da, dg * sa);
+            ob = sb + db - 2 * min(sb * da, db * sa);
+        }
+
         function _exclusion() {
             or = dr - (dr * div_2_255 - 1) * sr;
             og = dg - (dg * div_2_255 - 1) * sg;
             ob = db - (db * div_2_255 - 1) * sb;
+        }
+
+        function _svg_exclusion() {
+            or = sr * da + dr * sa - 2 * sr * dr + sr * (1 - da) + dr * (1 - sa);
+            og = sg * da + dg * sa - 2 * sg * dg + sg * (1 - da) + dg * (1 - sa);
+            ob = sb * da + db * sa - 2 * sb * db + sb * (1 - da) + db * (1 - sa);
         }
 
         function _overlay() {
@@ -240,6 +318,24 @@
                 ob = sb * db * div_2_255;
             } else {
                 ob = 255 - (255 - sb) * (255 - db) * div_2_255;
+            }
+        }
+
+        function _svg_overlay() {
+            if (2 * dr <= da) {
+                or = 2 * sr * dr + sr * (1 - da) + dr * (1 - sa);
+            } else {
+                or = sr * (1 + da) + dr * (1 + sa) - 2 * dr * sr - da * sa;
+            }
+            if (2 * dg <= da) {
+                og = 2 * sg * dg + sg * (1 - da) + dg * (1 - sa);
+            } else {
+                og = sg * (1 + da) + dg * (1 + sa) - 2 * dg * sg - da * sa;
+            }
+            if (2 * db <= da) {
+                ob = 2 * sb * db + sb * (1 - da) + db * (1 - sa);
+            } else {
+                ob = sb * (1 + da) + db * (1 + sa) - 2 * db * sb - da * sa;
             }
         }
 
@@ -263,6 +359,45 @@
             }
         }
 
+        function _svg_softlight() {
+            var m,
+                pow = Math.pow;
+
+            if (0.0 === da) {
+                or = sr;
+                og = sg;
+                ob = sb;
+                return;
+            }
+
+            m = dr / da;
+            if (2 * sr <= sa) {
+                or = dr * (sa + (2 * sr - sa) * (1 - m)) + sr * (1 - da) + dr * (1 - sa);
+            } else if (2 * sr > sa && 4 * dr <= da) {
+                or = da * (2 * sr - sa) * (16 * pow(m, 3) - 12 * pow(m, 2) - 3 * m) + sr - sr * da + dr;
+            } else if (2 * sr > sa && 4 * dr > da) {
+                or = da * (2 * sr - sa) * (pow(m, 0.5) - m) + sr - sr * da + dr;
+            }
+
+            m = dg / da;
+            if (2 * sg <= sa) {
+                og = dg * (sa + (2 * sg - sa) * (1 - m)) + sg * (1 - da) + dg * (1 - sa);
+            } else if (2 * sg > sa && 4 * dg <= da) {
+                og = da * (2 * sg - sa) * (16 * pow(m, 3) - 12 * pow(m, 2) - 3 * m) + sg - sg * da + dg;
+            } else if (2 * sg > sa && 4 * dg > da) {
+                og = da * (2 * sg - sa) * (pow(m, 0.5) - m) + sg - sg * da + dg;
+            }
+
+            m = db / da;
+            if (2 * sb <= sa) {
+                ob = db * (sa + (2 * sb - sa) * (1 - m)) + sb * (1 - da) + db * (1 - sa);
+            } else if (2 * sb > sa && 4 * db <= da) {
+                ob = da * (2 * sb - sa) * (16 * pow(m, 3) - 12 * pow(m, 2) - 3 * m) + sb - sb * da + db;
+            } else if (2 * sb > sa && 4 * db > da) {
+                ob = da * (2 * sb - sa) * (pow(m, 0.5) - m) + sb - sb * da + db;
+            }
+        }
+
         function _hardlight() {
             if (sr < 128) {
                 or = dr * sr * div_2_255;
@@ -283,6 +418,26 @@
             }
         }
 
+        function _svg_hardlight() {
+            if (2 * sr <= sa) {
+                or = 2 * sr * dr + sr * (1 - da) + dr * (1 - sa);
+            } else {
+                or = sr * (1 + da) + dr * (1 + sa) - sa * da - 2 * sr * dr;
+            }
+
+            if (2 * sg <= sa) {
+                og = 2 * sg * dg + sg * (1 - da) + dg * (1 - sa);
+            } else {
+                og = sg * (1 + da) + dg * (1 + sa) - sa * da - 2 * sg * dg;
+            }
+
+            if (2 * sb <= sa) {
+                ob = 2 * sb * db + sb * (1 - da) + db * (1 - sa);
+            } else {
+                ob = sb * (1 + da) + db * (1 + sa) - sa * da - 2 * sb * db;
+            }
+        }
+
         function _colordodge() {
             var dr1 = (dr << 8) / (255 - sr),
                 dg1 = (dg << 8) / (255 - sg),
@@ -293,6 +448,39 @@
             ob = (db1 > 255 || sb === 255) ? 255 : db1;
         }
 
+        function _svg_colordodge() {
+            if (da === 0) {
+                or = sr;
+                og = sg;
+                ob = sb;
+                return;
+            }
+
+            if (sr === sa && dr === 0) {
+                or = sr * (1 - da);
+            } else if (sr === sa) {
+                or = sa * da + sr * (1 - da) + dr * (1 - sa);
+            } else if (sr < sa) {
+                or = sa * da * min(1, dr / da * sa / (sa - sr)) + sr * (1 - da) + dr * (1 - sa);
+            }
+
+            if (sg === sa && dg === 0) {
+                og = sg * (1 - da);
+            } else if (sr === sa) {
+                og = sa * da + sg * (1 - da) + dg * (1 - sa);
+            } else if (sr < sa) {
+                og = sa * da * min(1, dg / da * sa / (sa - sg)) + sg * (1 - da) + dg * (1 - sa);
+            }
+
+            if (sb === sa && db === 0) {
+                ob = sb * (1 - da);
+            } else if (sr === sa) {
+                ob = sa * da + sb * (1 - da) + db * (1 - sa);
+            } else if (sr < sa) {
+                ob = sa * da * min(1, db / da * sa / (sa - sb)) + sb * (1 - da) + db * (1 - sa);
+            }
+        }
+
         function _colorburn() {
             var dr1 = 255 - ((255 - dr) << 8) / sr,
                 dg1 = 255 - ((255 - dg) << 8) / sg,
@@ -301,6 +489,39 @@
             or = (dr1 < 0 || sr === 0) ? 0 : dr1;
             og = (dg1 < 0 || sg === 0) ? 0 : dg1;
             ob = (db1 < 0 || sb === 0) ? 0 : db1;
+        }
+
+        function _svg_colorburn() {
+            if (da === 0) {
+                or = sr;
+                og = sg;
+                ob = sb;
+                return;
+            }
+
+            if (sr === 0 && dr === da) {
+                or = sa * da + dr * (1 - sa);
+            } else if (sr === 0) {
+                or = dr * (1 - sa);
+            } else if (sr > 0) {
+                or = sa * da * (1 - min(1, (1 - dr / da) * sa / sr)) + sr * (1 - da) + dr * (1 - sa);
+            }
+
+            if (sg === 0 && dg === da) {
+                og = sa * da + dg * (1 - sa);
+            } else if (sg === 0) {
+                og = dg * (1 - sa);
+            } else if (sg > 0) {
+                og = sa * da * (1 - min(1, (1 - dg / da) * sa / sg)) + sg * (1 - da) + dg * (1 - sa);
+            }
+
+            if (sb === 0 && db === da) {
+                ob = sa * da + db * (1 - sa);
+            } else if (sb === 0) {
+                ob = db * (1 - sa);
+            } else if (sb > 0) {
+                ob = sa * da * (1 - min(1, (1 - db / da) * sa / sb)) + sb * (1 - da) + db * (1 - sa);
+            }
         }
 
         function _linearlight() {
@@ -458,24 +679,24 @@
         }
 
         blend_fn = {
-            "normal": _normal,
-            "multiply": _multiply,
-            "subtract": _subtract,
+            "normal": _svg_normal,
+            "multiply": _svg_multiply,
+            "subtract": _svg_subtract,
             "divide": _divide,
-            "screen": _screen,
-            "lighten": _lighten,
-            "darken": _darken,
-            "darkercolor": _darkercolor,
-            "lightercolor": _lightercolor,
+            "screen": _svg_screen,
+            "lighten": _svg_lighten,
+            "darken": _svg_darken,
+            "darkercolor": _svg_darkercolor,
+            "lightercolor": _svg_lightercolor,
             "lineardodge": _lineardodge,
             "linearburn": _linearburn,
-            "difference": _difference,
-            "exclusion": _exclusion,
-            "overlay": _overlay,
-            "softlight": _softlight,
-            "hardlight": _hardlight,
-            "colordodge": _colordodge,
-            "colorburn": _colorburn,
+            "difference": _svg_difference,
+            "exclusion": _svg_exclusion,
+            "overlay": _svg_overlay,
+            "softlight": _svg_softlight,
+            "hardlight": _svg_hardlight,
+            "colordodge": _svg_colordodge,
+            "colorburn": _svg_colorburn,
             "linearlight": _linearlight,
             "vividlight": _vividlight,
             "pinlight": _pinlight,
@@ -486,62 +707,89 @@
             "color": _color
         };
 
-        function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
-            var right1 = x1 + w1,
-                bottom1 = y1 + h1,
-                right2 = x2 + w2,
-                bottom2 = y2 + h2,
+        function rectIntersect(r1, r2) {
+            var right1 = r1.x + r1.width,
+                bottom1 = r1.y + r1.height,
+                right2 = r2.x + r2.width,
+                bottom2 = r2.y + r2.height,
 
-                x = max(x1, x2),
-                y = max(y1, y2),
+                x = max(r1.x, r2.x),
+                y = max(r1.y, r2.y),
                 w = max(min(right1, right2) - x, 0),
                 h = max(min(bottom1, bottom2) - y, 0);
             return [x, y, w, h];
         }
 
         (function () {
-            var pix, pixIn, x, y, a, a2,
+            var pix, pixIn, x, y, a, a2, da2, demultiply, fBlend,
                 data2 = options.data,
                 opacity = options.opacity === 0 ? 0 : options.opacity || 1,
-                fn = blend_fn[options.type || "normal"],
+                fn = blend_fn[options.type || "_svg_normal"],
                 dx = options.dx || 0,
                 dy = options.dy || 0,
-                ri = rectIntersect(0, 0, width, height, dx, dy, options.width, options.height),
+                ri = rectIntersect({x: 0, y: 0, width: width, height: height},
+                                   {x: dx, y: dy, width: options.width, height: options.height}),
                 xi = ri[0],
                 yi = ri[1],
                 wi = ri[2],
                 hi = ri[3];
 
+            function pBlend() {
+                sa = data2[pixIn + 3] / 255 * opacity;
+                da = inData[pix + 3] / 255;
+                da2 = (sa + da - sa * da);
+                demultiply = 255 / da2;
+
+                sr = data2[pixIn] / 255 * sa;
+                sg = data2[pixIn + 1] / 255 * sa;
+                sb = data2[pixIn + 2] / 255 * sa;
+
+                dr = inData[pix] / 255 * da;
+                dg = inData[pix + 1] / 255 * da;
+                db = inData[pix + 2] / 255 * da;
+
+                fn();
+
+                outData[pix] = or * demultiply;
+                outData[pix + 1] = og * demultiply;
+                outData[pix + 2] = ob * demultiply;
+                outData[pix + 3] = da2 * 255;
+            }
+
+            function sBlend() {
+                dr = inData[pix];
+                dg = inData[pix + 1];
+                db = inData[pix + 2];
+
+                sr = data2[pixIn];
+                sg = data2[pixIn + 1];
+                sb = data2[pixIn + 2];
+
+                fn();
+
+                outData[pix] = or;
+                outData[pix + 1] = og;
+                outData[pix + 2] = ob;
+                outData[pix + 3] = inData[pix + 3];
+
+                a = opacity * data2[pixIn + 3] / 255;
+                if (a < 1) {
+                    a2 = 1 - a;
+                    outData[pix] = (inData[pix] * a2 + outData[pix] * a);
+                    outData[pix + 1] = (inData[pix + 1] * a2 + outData[pix + 1] * a);
+                    outData[pix + 2] = (inData[pix + 2] * a2 + outData[pix + 2] * a);
+                }
+            }
+
+            fBlend = fn.name.indexOf("_svg_") === 0 ? pBlend : sBlend;
+
             for (y = 0; y < height; y += 1) {
                 for (x = 0; x < width; x += 1) {
+                    pix = (y * width + x) * 4;
                     if (y >= yi && x >= xi && x < xi + wi && y < yi + hi) {
-                        pix = (y * width + x) * 4;
                         pixIn = ((y - dy) * options.width + x - dx) * 4;
-
-                        dr = inData[pix];
-                        dg = inData[pix + 1];
-                        db = inData[pix + 2];
-
-                        sr = data2[pixIn];
-                        sg = data2[pixIn + 1];
-                        sb = data2[pixIn + 2];
-
-                        fn();
-
-                        outData[pix] = or;
-                        outData[pix + 1] = og;
-                        outData[pix + 2] = ob;
-                        outData[pix + 3] = inData[pix + 3];
-
-                        a = opacity * data2[pixIn + 3] / 255;
-                        if (a < 1) {
-                            a2 = 1 - a;
-                            outData[pix] = (inData[pix] * a2 + outData[pix] * a);
-                            outData[pix + 1] = (inData[pix + 1] * a2 + outData[pix + 1] * a);
-                            outData[pix + 2] = (inData[pix + 2] * a2 + outData[pix + 2] * a);
-                        }
+                        fBlend();
                     } else {
-                        pix = (y * width + x) * 4;
                         outData[pix] = inData[pix];
                         outData[pix + 1] = inData[pix + 1];
                         outData[pix + 2] = inData[pix + 2];
