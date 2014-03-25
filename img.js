@@ -546,7 +546,7 @@
         };
     }
 
-    CanvasRenderer.mergeManualBlend = function (width, height, layerData) {
+    CanvasRenderer._mergeNoWorker = function (width, height, layerData) {
         return function (dCanvas, callback) {
             var i, d, blendData, tmpData, layerOptions,
                 ctx = dCanvas.getContext('2d'),
@@ -567,6 +567,42 @@
             callback(null, dCanvas);
         };
     };
+
+    CanvasRenderer._mergeWithWorker = function (width, height, layerData) {
+        return function (dCanvas, callback) {
+            var i, d, blendData, layerOptions,
+                data = [],
+                ctx = dCanvas.getContext('2d'),
+                baseData = ctx.getImageData(0, 0, width, height),
+                outData = createImageData(ctx, width, height),
+                worker = new window.Worker('img.blend.worker.control.js');
+
+            worker.onmessage = function (e) {
+                outData = e.data.result;
+                ctx.putImageData(outData, 0, 0);
+                callback(null, dCanvas);
+            };
+
+            for (i = 0; i < layerData.length; i += 1) {
+                d = layerData[i];
+                blendData = d.img.getContext('2d').getImageData(0, 0, d.img.width, d.img.height);
+                layerOptions = {blendmode: d.blendmode, data: blendData.data, width: d.img.width, height: d.img.height, opacity: d.opacity, dx: d.x, dy: d.y};
+                data.push(layerOptions);
+            }
+
+            worker.postMessage({ inData: baseData,
+                                 outData: outData,
+                                 width: width,
+                                 height: height,
+                                 layerData: data });
+        };
+    };
+
+    if (!window.Worker) {
+        CanvasRenderer.mergeManualBlend = CanvasRenderer._mergeNoWorker;
+    } else {
+        CanvasRenderer.mergeManualBlend = CanvasRenderer._mergeWithWorker;
+    }
 
     CanvasRenderer.singleLayerWithOpacity = function (canvas, layerImg, x, y, opacity) {
         var dCanvas = document.createElement('canvas'),
