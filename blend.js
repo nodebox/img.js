@@ -660,7 +660,7 @@
             ob = rgb[2];
         }
 
-        function _lightness() {
+        function _luminosity() {
             var hcl1 = rgbToHsy(dr, dg, db),
                 hcl2 = rgbToHsy(sr, sg, sb),
                 rgb = hsyToRgb(hcl1[0], hcl1[1], hcl2[2]);
@@ -703,7 +703,7 @@
             "hardmix": _hardmix,
             "hue": _hue,
             "saturation": _saturation,
-            "lightness": _lightness,
+            "luminosity": _luminosity,
             "color": _color
         };
 
@@ -837,7 +837,7 @@
         hardmix: _wrap("hardmix"),
         hue: _wrap("hue"),
         saturation: _wrap("saturation"),
-        lightness: _wrap("lightness"),
+        luminosity: _wrap("luminosity"),
         color: _wrap("color")
     };
 
