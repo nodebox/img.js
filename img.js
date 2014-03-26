@@ -618,6 +618,24 @@
         return dCanvas;
     };
 
+    CanvasRenderer.mergeNativeBlend = function (width, height, layerData) {
+        return function (dCanvas, callback) {
+            var i, d,
+                ctx = dCanvas.getContext('2d');
+            for (i = 0; i < layerData.length; i += 1) {
+                d = layerData[i];
+                if (d.opacity !== 1) {
+                    ctx.globalAlpha = d.opacity;
+                }
+                if (d.blendmode !== "normal") {
+                    ctx.globalCompositeOperation = d.blendmode;
+                }
+                ctx.drawImage(d.img, d.x, d.y);
+            }
+            callback(null, dCanvas);
+        };
+    };
+
     CanvasRenderer.merge = function (canvas, layerData, callback) {
         var d = layerData[0],
             dCanvas = CanvasRenderer.singleLayerWithOpacity(canvas, d.img, d.x, d.y, d.opacity);
