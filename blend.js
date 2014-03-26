@@ -841,6 +841,26 @@
         color: _wrap("color")
     };
 
+    // Aliases for the blending modes
+
+    blend["source-over"] = blend.normal;
+    blend["add"] = blend.lineardodge;
+    blend["linear-dodge"] = blend.lineardodge;
+    blend["linear-burn"] = blend.linearburn;
+    blend["darker"] = blend.darken;
+    blend["lighter"] = blend.lighten;
+    blend["soft-light"] = blend.softlight;
+    blend["hard-light"] = blend.hardlight;
+    blend["color-dodge"] = blend.colordodge;
+    blend["color-burn"] = blend.colorburn;
+    blend["linear-light"] = blend.linearlight;
+    blend["vivid-light"] = blend.vividlight;
+    blend["pin-light"] = blend.pinlight;
+    blend["hard-mix"] = blend.hardmix;
+    blend["darker-color"] = blend.darkercolor;
+    blend["lighter-color"] = blend.lightercolor;
+
+
     // MODULE SUPPORT ///////////////////////////////////////////////////////
 
     if (typeof module !== 'undefined') {
