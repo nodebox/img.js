@@ -6,6 +6,53 @@
 
     var blend, process;
 
+    function getNativeModes() {
+        var i, mode, darken, ok,
+            nativeModes = {},
+            dCanvas = document.createElement('canvas'),
+            ctx = dCanvas.getContext('2d'),
+
+            native = ['source-over', 'source-in', 'source-out', 'source-atop',
+		        'destination-over', 'destination-in', 'destination-out',
+		        'destination-atop', 'lighter', 'darker', 'copy', 'xor'],
+
+            maybeNative = ['multiply', 'screen', 'overlay', 'soft-light', 'hard-light',
+                          'color-dodge', 'color-burn', 'darken', 'lighten', 'difference',
+                          'exclusion', 'hue', 'saturation', 'luminosity', 'color',
+                          'add', 'subtract', 'average', 'negation'],
+
+            nonNative = ['divide', 'darker-color', 'lighter-color', 'linear-burn', 'linear-light',
+                         'vivid-light', 'pin-light', 'hard-mix'];
+
+        for (i = 0; i < native.length; i += 1) {
+            nativeModes[native[i]] = true;
+        }
+        for (i = 0; i < nonNative.length; i += 1) {
+            nativeModes[nonNative[i]] = false;
+        }
+        dCanvas.width = 1;
+        dCanvas.height = 1;
+        for (i = 0; i < maybeNative.length; i += 1) {
+            mode = maybeNative[i];
+            darken = mode === 'darken';
+            ok = false;
+            ctx.save();
+            try {
+                ctx.fillStyle = darken ? '#300' : '#a00';
+                ctx.fillRect(0, 0, 1, 1);
+                ctx.globalCompositeOperation = mode;
+                if (ctx.globalCompositeOperation === mode) {
+                    ctx.fillStyle = darken ? '#a00' : '#300';
+                    ctx.fillRect(0, 0, 1, 1);
+                    ok = ctx.getImageData(0, 0, 1, 1).data[0] !== (darken ? 170 : 51);
+                }
+            } catch (e) {}
+            ctx.restore();
+            nativeModes[mode] = ok;
+        }
+        return nativeModes;
+    }
+
     process = function (inData, outData, width, height, options) {
 
         var blend_fn, R, G, B,
@@ -125,13 +172,13 @@
             return [r, g, b];
         }
 
-        function _normal() {
+        function _sourceover() {
             or = sr;
             og = sg;
             ob = sb;
         }
 
-        function _svg_normal() {
+        function _svg_sourceover() {
             or = sr + dr - dr * sa;
             og = sg + dg - dg * sa;
             ob = sb + db - db * sa;
@@ -257,7 +304,7 @@
             ob += sb * (1 - da) + db * (1 - sa);
         }
 
-        function _lineardodge() {
+        function _add() { // also known as linear dodge
             or = min(dr + sr, 255);
             og = min(dg + sg, 255);
             ob = min(db + sb, 255);
@@ -679,32 +726,32 @@
         }
 
         blend_fn = {
-            "normal": _svg_normal,
-            "multiply": _svg_multiply,
-            "subtract": _svg_subtract,
-            "divide": _divide,
-            "screen": _svg_screen,
-            "lighten": _svg_lighten,
-            "darken": _svg_darken,
-            "darkercolor": _svg_darkercolor,
-            "lightercolor": _svg_lightercolor,
-            "lineardodge": _lineardodge,
-            "linearburn": _linearburn,
-            "difference": _svg_difference,
-            "exclusion": _svg_exclusion,
-            "overlay": _svg_overlay,
-            "softlight": _svg_softlight,
-            "hardlight": _svg_hardlight,
-            "colordodge": _svg_colordodge,
-            "colorburn": _svg_colorburn,
-            "linearlight": _linearlight,
-            "vividlight": _vividlight,
-            "pinlight": _pinlight,
-            "hardmix": _hardmix,
-            "hue": _hue,
-            "saturation": _saturation,
-            "luminosity": _luminosity,
-            "color": _color
+            'source-over': _svg_sourceover,
+            'multiply': _svg_multiply,
+            'subtract': _svg_subtract,
+            'divide': _divide,
+            'screen': _svg_screen,
+            'lighten': _svg_lighten,
+            'darken': _svg_darken,
+            'darker-color': _svg_darkercolor,
+            'lighter-color': _svg_lightercolor,
+            'add': _add,
+            'linear-burn': _linearburn,
+            'difference': _svg_difference,
+            'exclusion': _svg_exclusion,
+            'overlay': _svg_overlay,
+            'soft-light': _svg_softlight,
+            'hard-light': _svg_hardlight,
+            'color-dodge': _svg_colordodge,
+            'color-burn': _svg_colorburn,
+            'linear-light': _linearlight,
+            'vivid-light': _vividlight,
+            'pin-light': _pinlight,
+            'hard-mix': _hardmix,
+            'hue': _hue,
+            'saturation': _saturation,
+            'luminosity': _luminosity,
+            'color': _color
         };
 
         function rectIntersect(r1, r2) {
@@ -724,7 +771,7 @@
             var pix, pixIn, x, y, a, a2, da2, demultiply, fBlend,
                 data2 = options.data,
                 opacity = options.opacity === 0 ? 0 : options.opacity || 1,
-                fn = blend_fn[options.type || "_svg_normal"],
+                fn = blend_fn[options.type || '_svg_normal'],
                 dx = options.dx || 0,
                 dy = options.dy || 0,
                 ri = rectIntersect({x: 0, y: 0, width: width, height: height},
@@ -781,7 +828,7 @@
                 }
             }
 
-            fBlend = fn.name.indexOf("_svg_") === 0 ? pBlend : sBlend;
+            fBlend = fn.name.indexOf('_svg_') === 0 ? pBlend : sBlend;
 
             for (y = 0; y < height; y += 1) {
                 for (x = 0; x < width; x += 1) {
@@ -811,55 +858,27 @@
         };
     }
 
-    blend = {
-        blend: _blend,
-        normal: _wrap("normal"),
-        multiply: _wrap("multiply"),
-        subtract: _wrap("subtract"),
-        divide: _wrap("divide"),
-        screen: _wrap("screen"),
-        lighten: _wrap("lighten"),
-        darken: _wrap("darken"),
-        darkercolor: _wrap("darkercolor"),
-        lightercolor: _wrap("lightercolor"),
-        lineardodge: _wrap("lineardodge"),
-        linearburn: _wrap("linearburn"),
-        difference: _wrap("difference"),
-        exclusion: _wrap("exclusion"),
-        overlay: _wrap("overlay"),
-        softlight: _wrap("softlight"),
-        hardlight: _wrap("hardlight"),
-        colordodge: _wrap("colordodge"),
-        colorburn: _wrap("colorburn"),
-        linearlight: _wrap("linearlight"),
-        vividlight: _wrap("vividlight"),
-        pinlight: _wrap("pinlight"),
-        hardmix: _wrap("hardmix"),
-        hue: _wrap("hue"),
-        saturation: _wrap("saturation"),
-        luminosity: _wrap("luminosity"),
-        color: _wrap("color")
-    };
+    blend = (function () {
+        var i, mode,
+            d = { blend: _blend },
+            modes = ['source-over', 'add', 'multiply', 'subtract', 'divide', 'screen',
+                    'lighten', 'darken', 'darker-color', 'lighter-color', 'linear-burn',
+                    'difference', 'exclusion', 'overlay', 'soft-light', 'hard-light',
+                    'color-dodge', 'color-burn', 'linear-light', 'vivid-light', 'pin-light',
+                    'hard-mix', 'hue', 'saturation', 'luminosity', 'color'];
+        for (i = 0; i < modes.length; i += 1) {
+            mode = modes[i];
+            d[mode] = _wrap(mode);
+        }
 
-    // Aliases for the blending modes
+        // Aliases for the blending modes
+        d.normal = d['source-over'];
+        d['linear-dodge'] = d.add;
 
-    blend["source-over"] = blend.normal;
-    blend["add"] = blend.lineardodge;
-    blend["linear-dodge"] = blend.lineardodge;
-    blend["linear-burn"] = blend.linearburn;
-    blend["darker"] = blend.darken;
-    blend["lighter"] = blend.lighten;
-    blend["soft-light"] = blend.softlight;
-    blend["hard-light"] = blend.hardlight;
-    blend["color-dodge"] = blend.colordodge;
-    blend["color-burn"] = blend.colorburn;
-    blend["linear-light"] = blend.linearlight;
-    blend["vivid-light"] = blend.vividlight;
-    blend["pin-light"] = blend.pinlight;
-    blend["hard-mix"] = blend.hardmix;
-    blend["darker-color"] = blend.darkercolor;
-    blend["lighter-color"] = blend.lightercolor;
+        d.getNativeModes = getNativeModes;
 
+        return d;
+    }());
 
     // MODULE SUPPORT ///////////////////////////////////////////////////////
 

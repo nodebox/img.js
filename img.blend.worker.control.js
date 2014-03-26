@@ -19,6 +19,9 @@ self.onmessage = function (e) {
             outData = tmpData;
         }
         d = layerData[i];
+        if (blend[d.blendmode] === undefined) {
+            throw new Error('No blend mode named \'' + d.blendmode + '\'');
+        }
         blend[d.blendmode](inData.data, outData.data, width, height, d);
     }
 

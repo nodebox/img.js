@@ -4,7 +4,7 @@
 (function () {
     'use strict';
 
-    var Canvas, CanvasRenderer, Layer, img, colors,
+    var Canvas, CanvasRenderer, Layer, img, colors, nativeBlendModes,
         DEFAULT_WIDTH = 800,
         DEFAULT_HEIGHT = 800,
 
@@ -16,6 +16,8 @@
         TYPE_GRADIENT = "gradient";
 
     colors = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'transparent', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'];
+
+    nativeBlendModes = blend.getNativeModes();
 
     function clamp(val, min, max) {
         return Math.min(max, Math.max(min, val));
@@ -561,6 +563,9 @@
                 d = layerData[i];
                 blendData = d.img.getContext('2d').getImageData(0, 0, d.img.width, d.img.height);
                 layerOptions = {data: blendData.data, width: d.img.width, height: d.img.height, opacity: d.opacity, dx: d.x, dy: d.y};
+                if (blend[d.blendmode] === undefined) {
+                    throw new Error('No blend mode named \'' + d.blendmode + '\'');
+                }
                 blend[d.blendmode](baseData.data, outData.data, width, height, layerOptions);
             }
             ctx.putImageData(outData, 0, 0);
