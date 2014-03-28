@@ -642,13 +642,33 @@
     };
 
     CanvasRenderer.merge = function (canvas, layerData, callback) {
-        var d = layerData[0],
-            dCanvas = CanvasRenderer.singleLayerWithOpacity(canvas, d.img, d.x, d.y, d.opacity);
+        var i, mode, useNative, currentList,
+            d = layerData[0],
+            dCanvas = CanvasRenderer.singleLayerWithOpacity(canvas, d.img, d.x, d.y, d.opacity),
+            renderPipe = [function (_, cb) { cb(null, dCanvas); }];
 
-        async.compose(
-            CanvasRenderer.mergeManualBlend(canvas.width, canvas.height, layerData.slice(1)),
-            function (_, cb) { cb(null, dCanvas); }
-        )(null, function () {
+        function pushList() {
+            if (useNative !== undefined) {
+                var fn = useNative ? CanvasRenderer.mergeNativeBlend : CanvasRenderer.mergeManualBlend;
+                renderPipe.unshift(fn(canvas.width, canvas.height, currentList));
+            }
+        }
+
+        for (i = 1; i < layerData.length; i += 1) {
+            mode = layerData[i].blendmode;
+
+            if (useNative !== nativeBlendModes[mode]) {
+                pushList();
+                currentList = [];
+            }
+            currentList.push(layerData[i]);
+            useNative = nativeBlendModes[mode];
+            if (i === layerData.length - 1) {
+                pushList();
+            }
+        }
+
+        async.compose.apply(null, renderPipe)(null, function () {
             callback(dCanvas);
         });
     };
