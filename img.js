@@ -224,7 +224,7 @@
         this.data = data;
         this.type = type;
         this.opacity = 1.0;
-        this.blendmode = "normal";
+        this.blendmode = "source-over";
         this.mask = new Canvas();
         this.filters = [];
     };
@@ -656,8 +656,8 @@
 
         for (i = 1; i < layerData.length; i += 1) {
             mode = layerData[i].blendmode;
-
-            if (useNative !== nativeBlendModes[mode]) {
+            // todo: handle blendmode aliases.
+            if (useNative === undefined || useNative !== nativeBlendModes[mode]) {
                 pushList();
                 currentList = [];
             }
