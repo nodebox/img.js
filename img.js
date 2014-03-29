@@ -19,6 +19,14 @@
 
     nativeBlendModes = blend.getNativeModes();
 
+    function degrees(radians) {
+        return radians * 180 / Math.PI;
+    }
+
+    function radians(degrees) {
+        return degrees / 180 * Math.PI;
+    }
+
     function clamp(val, min, max) {
         return Math.min(max, Math.max(min, val));
     }
