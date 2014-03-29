@@ -710,27 +710,50 @@
         return {x: x, y: y, width: w, height: h};
     }
 
+    function calcLayerRect(canvas, layer) {
+        var rect = transformRect(canvas, layer);
+        rect = rectIntersect(rect, {x: 0, y: 0, width: canvas.width, height: canvas.height});
+        return { x: Math.round(rect.x),
+                 y: Math.round(rect.y),
+                 width: Math.ceil(rect.width),
+                 height: Math.ceil(rect.height)};
+    }
+
+    function getTransformedLayerData(canvas, layer, rect) {
+        var dCanvas = document.createElement('canvas'),
+            ctx = dCanvas.getContext('2d');
+        dCanvas.width = rect.width;
+        dCanvas.height = rect.height;
+        ctx.translate(-rect.x, -rect.y);
+        transformLayer(ctx, canvas, layer);
+        ctx.drawImage(layer.img, layer.x, layer.y);
+        return ctx.getImageData(0, 0, rect.width, rect.height);
+    }
+
     CanvasRenderer._mergeNoWorker = function (canvas, layerData) {
         return function (dCanvas, callback) {
-            var i, d, blendData, tmpData, layerOptions,
+            var i, layer, blendData, tmpData, layerOptions, rect,
                 ctx = dCanvas.getContext('2d'),
                 width = canvas.width,
                 height = canvas.height,
                 baseData = ctx.getImageData(0, 0, width, height),
                 outData = createImageData(ctx, width, height);
             for (i = 0; i < layerData.length; i += 1) {
-                if (i > 0) {
-                    tmpData = baseData;
-                    baseData = outData;
-                    outData = tmpData;
+                layer = layerData[i];
+                rect = calcLayerRect(canvas, layer);
+                if (rect.width > 0 && rect.height > 0) {
+                    if (i > 0) {
+                        tmpData = baseData;
+                        baseData = outData;
+                        outData = tmpData;
+                    }
+                    blendData = getTransformedLayerData(canvas, layer, rect);
+                    layerOptions = {data: blendData.data, width: rect.width, height: rect.height, opacity: layer.opacity, dx: rect.x, dy: rect.y};
+                    if (blend[layer.blendmode] === undefined) {
+                        throw new Error('No blend mode named \'' + layer.blendmode + '\'');
+                    }
+                    blend[layer.blendmode](baseData.data, outData.data, width, height, layerOptions);
                 }
-                d = layerData[i];
-                blendData = d.img.getContext('2d').getImageData(0, 0, d.img.width, d.img.height);
-                layerOptions = {data: blendData.data, width: d.img.width, height: d.img.height, opacity: d.opacity, dx: d.x, dy: d.y};
-                if (blend[d.blendmode] === undefined) {
-                    throw new Error('No blend mode named \'' + d.blendmode + '\'');
-                }
-                blend[d.blendmode](baseData.data, outData.data, width, height, layerOptions);
             }
             ctx.putImageData(outData, 0, 0);
             callback(null, dCanvas);
@@ -739,7 +762,7 @@
 
     CanvasRenderer._mergeWithWorker = function (canvas, layerData) {
         return function (dCanvas, callback) {
-            var i, d, blendData, layerOptions,
+            var i, layer, blendData, layerOptions, rect,
                 data = [],
                 ctx = dCanvas.getContext('2d'),
                 width = canvas.width,
@@ -755,10 +778,13 @@
             };
 
             for (i = 0; i < layerData.length; i += 1) {
-                d = layerData[i];
-                blendData = d.img.getContext('2d').getImageData(0, 0, d.img.width, d.img.height);
-                layerOptions = {blendmode: d.blendmode, data: blendData.data, width: d.img.width, height: d.img.height, opacity: d.opacity, dx: d.x, dy: d.y};
-                data.push(layerOptions);
+                layer = layerData[i];
+                rect = calcLayerRect(canvas, layer);
+                if (rect.width > 0 && rect.height > 0) {
+                    blendData = getTransformedLayerData(canvas, layer, rect);
+                    layerOptions = {blendmode: layer.blendmode, data: blendData.data, width: rect.width, height: rect.height, opacity: layer.opacity, dx: rect.x, dy: rect.y};
+                    data.push(layerOptions);
+                }
             }
 
             worker.postMessage({ inData: baseData,
@@ -794,19 +820,19 @@
 
     CanvasRenderer.mergeNativeBlend = function (canvas, layerData) {
         return function (dCanvas, callback) {
-            var i, d,
+            var i, layer,
                 ctx = dCanvas.getContext('2d');
             for (i = 0; i < layerData.length; i += 1) {
-                d = layerData[i];
+                layer = layerData[i];
                 ctx.save();
-                transformLayer(ctx, canvas, d);
-                if (d.opacity !== 1) {
-                    ctx.globalAlpha = d.opacity;
+                transformLayer(ctx, canvas, layer);
+                if (layer.opacity !== 1) {
+                    ctx.globalAlpha = layer.opacity;
                 }
-                if (d.blendmode !== "normal") {
-                    ctx.globalCompositeOperation = d.blendmode;
+                if (layer.blendmode !== 'source-over') {
+                    ctx.globalCompositeOperation = layer.blendmode;
                 }
-                ctx.drawImage(d.img, d.x, d.y);
+                ctx.drawImage(layer.img, layer.x, layer.y);
                 ctx.restore();
             }
             callback(null, dCanvas);
@@ -815,8 +841,8 @@
 
     CanvasRenderer.merge = function (canvas, layerData, callback) {
         var i, mode, useNative, currentList,
-            d = layerData[0],
-            dCanvas = CanvasRenderer.singleLayerWithOpacity(canvas, d),
+            layer = layerData[0],
+            dCanvas = CanvasRenderer.singleLayerWithOpacity(canvas, layer),
             renderPipe = [function (_, cb) { cb(null, dCanvas); }];
 
         function pushList() {
@@ -827,13 +853,14 @@
         }
 
         for (i = 1; i < layerData.length; i += 1) {
-            mode = layerData[i].blendmode;
+            layer = layerData[i];
+            mode = layer.blendmode;
             // todo: handle blendmode aliases.
             if (useNative === undefined || useNative !== nativeBlendModes[mode]) {
                 pushList();
                 currentList = [];
             }
-            currentList.push(layerData[i]);
+            currentList.push(layer);
             useNative = nativeBlendModes[mode];
             if (i === layerData.length - 1) {
                 pushList();
@@ -851,9 +878,7 @@
             return;
         }
         if (layerData.length === 1) {
-
-            var d = layerData[0];
-            callback(CanvasRenderer.singleLayerWithOpacity(canvas, d));
+            callback(CanvasRenderer.singleLayerWithOpacity(canvas, layerData[0]));
             return;
         }
 
