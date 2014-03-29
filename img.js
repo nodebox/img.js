@@ -593,10 +593,12 @@
         };
     }
 
-    CanvasRenderer._mergeNoWorker = function (width, height, layerData) {
+    CanvasRenderer._mergeNoWorker = function (canvas, layerData) {
         return function (dCanvas, callback) {
             var i, d, blendData, tmpData, layerOptions,
                 ctx = dCanvas.getContext('2d'),
+                width = canvas.width,
+                height = canvas.height,
                 baseData = ctx.getImageData(0, 0, width, height),
                 outData = createImageData(ctx, width, height);
             for (i = 0; i < layerData.length; i += 1) {
@@ -618,11 +620,13 @@
         };
     };
 
-    CanvasRenderer._mergeWithWorker = function (width, height, layerData) {
+    CanvasRenderer._mergeWithWorker = function (canvas, layerData) {
         return function (dCanvas, callback) {
             var i, d, blendData, layerOptions,
                 data = [],
                 ctx = dCanvas.getContext('2d'),
+                width = canvas.width,
+                height = canvas.height,
                 baseData = ctx.getImageData(0, 0, width, height),
                 outData = createImageData(ctx, width, height),
                 worker = new window.Worker('img.blend.worker.control.js');
@@ -654,26 +658,31 @@
         CanvasRenderer.mergeManualBlend = CanvasRenderer._mergeWithWorker;
     }
 
-    CanvasRenderer.singleLayerWithOpacity = function (canvas, layerImg, x, y, opacity) {
+    CanvasRenderer.singleLayerWithOpacity = function (canvas, layer) {
         var dCanvas = document.createElement('canvas'),
             ctx = dCanvas.getContext('2d');
 
         dCanvas.width = canvas.width;
         dCanvas.height = canvas.height;
 
-        if (opacity !== 1) {
-            ctx.globalAlpha = opacity;
+        ctx.save();
+        transformLayer(ctx, canvas, layer);
+        if (layer.opacity !== 1) {
+            ctx.globalAlpha = layer.opacity;
         }
-        ctx.drawImage(layerImg, x, y);
+        ctx.drawImage(layer.img, layer.x, layer.y);
+        ctx.restore();
         return dCanvas;
     };
 
-    CanvasRenderer.mergeNativeBlend = function (width, height, layerData) {
+    CanvasRenderer.mergeNativeBlend = function (canvas, layerData) {
         return function (dCanvas, callback) {
             var i, d,
                 ctx = dCanvas.getContext('2d');
             for (i = 0; i < layerData.length; i += 1) {
                 d = layerData[i];
+                ctx.save();
+                transformLayer(ctx, canvas, d);
                 if (d.opacity !== 1) {
                     ctx.globalAlpha = d.opacity;
                 }
@@ -681,6 +690,7 @@
                     ctx.globalCompositeOperation = d.blendmode;
                 }
                 ctx.drawImage(d.img, d.x, d.y);
+                ctx.restore();
             }
             callback(null, dCanvas);
         };
@@ -689,13 +699,13 @@
     CanvasRenderer.merge = function (canvas, layerData, callback) {
         var i, mode, useNative, currentList,
             d = layerData[0],
-            dCanvas = CanvasRenderer.singleLayerWithOpacity(canvas, d.img, d.x, d.y, d.opacity),
+            dCanvas = CanvasRenderer.singleLayerWithOpacity(canvas, d),
             renderPipe = [function (_, cb) { cb(null, dCanvas); }];
 
         function pushList() {
             if (useNative !== undefined) {
                 var fn = useNative ? CanvasRenderer.mergeNativeBlend : CanvasRenderer.mergeManualBlend;
-                renderPipe.unshift(fn(canvas.width, canvas.height, currentList));
+                renderPipe.unshift(fn(canvas, currentList));
             }
         }
 
@@ -718,15 +728,39 @@
         });
     };
 
+    function transformLayer(ctx, canvas, layer) {
+        var translate = layer.tx !== 0 || layer.ty !== 0,
+            scale = layer.sx !== 1 || layer.sy !== 1,
+            rotate = layer.rot !== 0,
+            flip = layer.flip_h || layer.flip_v;
+
+        if (translate) {
+            ctx.translate(layer.tx, layer.ty);
+        }
+        if (scale || rotate || flip) {
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            if (rotate) {
+                ctx.rotate(radians(layer.rot));
+            }
+            if (scale) {
+                ctx.scale(layer.sx, layer.sy);
+            }
+            if (flip) {
+                ctx.scale(layer.flip_h ? -1 : 1, layer.flip_v ? -1 : 1);
+            }
+            ctx.translate(-canvas.width / 2, -canvas.height / 2);
+        }
+    }
+
     CanvasRenderer.composite = function (canvas, layerData, callback) {
         if (!layerData || layerData.length === 0) {
             callback(null);
             return;
         }
-
         if (layerData.length === 1) {
+
             var d = layerData[0];
-            callback(CanvasRenderer.singleLayerWithOpacity(canvas, d.img, d.x, d.y, d.opacity));
+            callback(CanvasRenderer.singleLayerWithOpacity(canvas, d));
             return;
         }
 
@@ -734,13 +768,21 @@
     };
 
     function getLayerData(canvas, layerImages) {
-        var i, x, y, layer, layerImg, layerData = [];
+        var i, d, x, y, layer, layerImg, layerData = [];
         for (i = 0; i < layerImages.length; i += 1) {
             layer = canvas.layers[i];
             layerImg = layerImages[i];
             x = (canvas.width - layerImg.width) / 2;
             y = (canvas.height - layerImg.height) / 2;
-            layerData.push({img: layerImg, opacity: layer.opacity, blendmode: layer.blendmode, x: x, y: y});
+            d = { img: layerImg, x: x, y: y,
+                  opacity: layer.opacity,
+                  blendmode: layer.blendmode,
+                  tx: layer.tx, ty: layer.ty,
+                  sx: layer.sx, sy: layer.sy,
+                  rot: layer.rot,
+                  flip_h: layer.flip_h, flip_v: layer.flip_v
+                };
+            layerData.push(d);
         }
         return layerData;
     }
