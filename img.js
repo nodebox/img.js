@@ -593,6 +593,30 @@
         };
     }
 
+    function transformLayer(ctx, canvas, layer) {
+        var translate = layer.tx !== 0 || layer.ty !== 0,
+            scale = layer.sx !== 1 || layer.sy !== 1,
+            rotate = layer.rot !== 0,
+            flip = layer.flip_h || layer.flip_v;
+
+        if (translate) {
+            ctx.translate(layer.tx, layer.ty);
+        }
+        if (scale || rotate || flip) {
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            if (rotate) {
+                ctx.rotate(radians(layer.rot));
+            }
+            if (scale) {
+                ctx.scale(layer.sx, layer.sy);
+            }
+            if (flip) {
+                ctx.scale(layer.flip_h ? -1 : 1, layer.flip_v ? -1 : 1);
+            }
+            ctx.translate(-canvas.width / 2, -canvas.height / 2);
+        }
+    }
+
     CanvasRenderer._mergeNoWorker = function (canvas, layerData) {
         return function (dCanvas, callback) {
             var i, d, blendData, tmpData, layerOptions,
@@ -727,30 +751,6 @@
             callback(dCanvas);
         });
     };
-
-    function transformLayer(ctx, canvas, layer) {
-        var translate = layer.tx !== 0 || layer.ty !== 0,
-            scale = layer.sx !== 1 || layer.sy !== 1,
-            rotate = layer.rot !== 0,
-            flip = layer.flip_h || layer.flip_v;
-
-        if (translate) {
-            ctx.translate(layer.tx, layer.ty);
-        }
-        if (scale || rotate || flip) {
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            if (rotate) {
-                ctx.rotate(radians(layer.rot));
-            }
-            if (scale) {
-                ctx.scale(layer.sx, layer.sy);
-            }
-            if (flip) {
-                ctx.scale(layer.flip_h ? -1 : 1, layer.flip_v ? -1 : 1);
-            }
-            ctx.translate(-canvas.width / 2, -canvas.height / 2);
-        }
-    }
 
     CanvasRenderer.composite = function (canvas, layerData, callback) {
         if (!layerData || layerData.length === 0) {
