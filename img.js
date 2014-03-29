@@ -233,12 +233,49 @@
         this.type = type;
         this.opacity = 1.0;
         this.blendmode = "source-over";
+        this.tx = 0;
+        this.ty = 0;
+        this.sx = 1.0;
+        this.sy = 1.0;
+        this.rot = 0;
+        this.flip_h = false;
+        this.flip_v = false;
         this.mask = new Canvas();
         this.filters = [];
     };
 
     Layer.prototype.setOpacity = function (opacity) {
         this.opacity = clamp(opacity, 0, 1);
+    };
+
+    Layer.prototype.translate = function (tx, ty) {
+        this.tx += tx;
+        this.ty += ty === undefined ? 0 : ty;
+    };
+
+    Layer.prototype.scale = function (sx, sy) {
+        this.sx *= sx;
+        this.sy *= sy === undefined ? sx : sy;
+    };
+
+    Layer.prototype.rotate = function (rot) {
+        this.rot += rot;
+    };
+
+    Layer.prototype.flipHorizontal = function (arg) {
+        if (arg !== undefined) {
+            this.flip_h = arg;
+        } else {
+            this.flip_h = !this.flip_h;
+        }
+    };
+
+    Layer.prototype.flipVertical = function (arg) {
+        if (arg !== undefined) {
+            this.flip_v = arg;
+        } else {
+            this.flip_v = !this.flip_v;
+        }
     };
 
     Layer.prototype.addFilter = function (filter, options) {
