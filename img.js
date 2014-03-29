@@ -31,6 +31,53 @@
         return Math.min(max, Math.max(min, val));
     }
 
+    function transform() {
+        var m = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+
+        function _mmult(a) {
+            var m0 = m[0],
+                m1 = m[1],
+                m2 = m[2],
+                m3 = m[3],
+                m4 = m[4],
+                m5 = m[5],
+                m6 = m[6],
+                m7 = m[7],
+                m8 = m[8];
+
+            m[0] = a[0] * m0 + a[1] * m3;
+            m[1] = a[0] * m1 + a[1] * m4;
+            m[3] = a[3] * m0 + a[4] * m3;
+            m[4] = a[3] * m1 + a[4] * m4;
+            m[6] = a[6] * m0 + a[7] * m3 + m6;
+            m[7] = a[6] * m1 + a[7] * m4 + m7;
+        }
+
+        return {
+            scale: function (x, y) {
+                if (y === undefined) { y = x; }
+                _mmult([x, 0, 0, 0, y, 0, 0, 0, 1]);
+            },
+
+            translate: function (x, y) {
+                _mmult([1, 0, 0, 0, 1, 0, x, y, 1]);
+            },
+
+            rotate: function (angle) {
+                var c = Math.cos(radians(angle)),
+                    s = Math.sin(radians(angle));
+                _mmult([c, s, 0, -s, c, 0, 0, 0, 1]);
+            },
+
+            transformPoint: function (point) {
+                var x = point.x,
+                    y = point.y;
+                return {x: x * m[0] + y * m[3] + m[6],
+                        y: x * m[1] + y * m[4] + m[7]};
+            }
+        };
+    }
+
     function passThrough(canvas, callback) {
         callback(null, canvas);
     }
@@ -615,6 +662,52 @@
             }
             ctx.translate(-canvas.width / 2, -canvas.height / 2);
         }
+    }
+
+    function transformRect(canvas, layer) {
+        var i, pt, minx, miny, maxx, maxy, t,
+            width = layer.img.width,
+            height = layer.img.height,
+            p1 = {x: 0, y: 0},
+            p2 = {x: width, y: 0},
+            p3 = {x: 0, y: height},
+            p4 = {x: width, y: height},
+            points = [p1, p2, p3, p4];
+
+        t = transform();
+        t.translate((canvas.width - width) / 2, (canvas.height - height) / 2);
+        t.translate(layer.tx, layer.ty);
+        t.translate(width / 2, height / 2);
+        t.rotate(layer.rot);
+        t.scale(layer.sx, layer.sy);
+        t.translate(-width / 2, -height / 2);
+
+        for (i = 0; i < 4; i += 1) {
+            pt = t.transformPoint(points[i]);
+            if (i === 0) {
+                minx = maxx = pt.x;
+                miny = maxy = pt.y;
+            } else {
+                if (pt.x < minx) { minx = pt.x; }
+                if (pt.x > maxx) { maxx = pt.x; }
+                if (pt.y < miny) { miny = pt.y; }
+                if (pt.y > maxy) { maxy = pt.y; }
+            }
+        }
+        return {x: minx, y: miny, width: maxx - minx, height: maxy - miny};
+    }
+
+    function rectIntersect(r1, r2) {
+        var right1 = r1.x + r1.width,
+            bottom1 = r1.y + r1.height,
+            right2 = r2.x + r2.width,
+            bottom2 = r2.y + r2.height,
+
+            x = Math.max(r1.x, r2.x),
+            y = Math.max(r1.y, r2.y),
+            w = Math.max(Math.min(right1, right2) - x, 0),
+            h = Math.max(Math.min(bottom1, bottom2) - y, 0);
+        return {x: x, y: y, width: w, height: h};
     }
 
     CanvasRenderer._mergeNoWorker = function (canvas, layerData) {
