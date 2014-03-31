@@ -4,20 +4,28 @@
 (function () {
     'use strict';
 
-    var Canvas, CanvasRenderer, Layer, img, colors, nativeBlendModes,
+    var Canvas, CanvasRenderer, Layer, img,
+
         DEFAULT_WIDTH = 800,
         DEFAULT_HEIGHT = 800,
 
+        // Different layer types.
         TYPE_PATH = "path",
         TYPE_IMAGE = "image",
         TYPE_HTML_CANVAS = "htmlcanvas",
         TYPE_CANVAS = "canvas",
         TYPE_FILL = "fill",
-        TYPE_GRADIENT = "gradient";
+        TYPE_GRADIENT = "gradient",
 
-    colors = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'transparent', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'];
+        // Named colors supported by all browsers.
+        // See: http://www.w3schools.com/html/html_colornames.asp
+        colors = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'transparent', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'],
 
-    nativeBlendModes = blend.getNativeModes();
+        // Dictionary of blend modes that the client browser does or does not support.
+        nativeBlendModes = blend.getNativeModes();
+
+
+    // UTILITIES.
 
     function degrees(radians) {
         return radians * 180 / Math.PI;
@@ -31,9 +39,12 @@
         return Math.min(max, Math.max(min, val));
     }
 
+    // Basic affine transform functionality limited to the following operations: scale, translate and rotate.
     function transform() {
+        // Identity matrix.
         var m = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 
+        // Performs the 3x3 matrix multiplication of the current matrix with the input matrix a.
         function _mmult(a) {
             var m0 = m[0],
                 m1 = m[1],
@@ -78,10 +89,13 @@
         };
     }
 
-    function passThrough(canvas, callback) {
-        callback(null, canvas);
+    // Utility function that passes its input (normally a html canvas) to the next function.
+    function passThrough(dCanvas, callback) {
+        callback(null, dCanvas);
     }
 
+    // Converts a number of arguments to a type of color argument that the html canvas context can understand:
+    // a named color, a hex color or a string in the form of rgba(r, g, b, a)
     function toColor(v1, v2, v3, v4, v5) {
         var _r, _g, _b, _a, R, G, B, rgb, options;
         if (v1 === undefined) {
@@ -167,42 +181,43 @@
         return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + _a + ')';
     }
 
+    // Converts a number of arguments into a dictionary of gradient information that is understood by the renderer.
     function toGradientData(v1, v2, v3, v4, v5) {
         var startColor, endColor, type, rotation, spread, d,
             data = {};
 
-        if (arguments.length === 1) {
+        if (arguments.length === 1) { // The argument is a dictionary or undefined.
             d = v1 || {};
             startColor = d.startColor;
             endColor = d.endColor;
             type = d.type;
             rotation = d.rotation;
             spread = d.spread;
-        } else if (arguments.length >= 2) {
+        } else if (arguments.length >= 2) { // The first two arguments are a start color and an end color.
             startColor = v1;
             endColor = v2;
             type = "linear";
             rotation = 0;
             spread = 0;
             if (arguments.length === 3) {
-                if (typeof v3 === "string") {
+                if (typeof v3 === "string") { // The type can be either linear or radial.
                     type = v3;
-                } else if (typeof v3 === "number") {
+                } else if (typeof v3 === "number") { // The type is implicitly linear and the third argument is the rotation angle.
                     rotation = v3;
                 }
             } else if (arguments.length === 4) {
-                if (typeof v3 === "number") {
+                if (typeof v3 === "number") { // The type is implicitly linear and the third/forth arguments are the rotation angle and gradient spread.
                     rotation = v3;
                     spread = v4;
-                } else if (v3 === "linear") {
+                } else if (v3 === "linear") { // The type is explicitly linear and the forth argument is the rotation angle.
                     rotation = v4;
-                } else if (v3 === "radial") {
+                } else if (v3 === "radial") { // The type is explicitly radial and the forth argument is the gradient spread.
                     type = v3;
                     spread = v4;
                 } else {
                     throw new Error("Wrong argument provided: " + v3);
                 }
-            } else if (arguments.length === 5) {
+            } else if (arguments.length === 5) { // Type, rotation (unused in case of radial type gradient), and gradient spread.
                 type = v3;
                 rotation = v4;
                 spread = v5;
@@ -274,12 +289,19 @@
         throw new Error("Cannot establish type for data ", data);
     }
 
+
+    // LAYER.
+
     Layer = function (data, type) {
         if (!type) { type = findType(data); }
         this.data = data;
         this.type = type;
+
+        // Compositing.
         this.opacity = 1.0;
         this.blendmode = "source-over";
+
+        // Transformations.
         this.tx = 0;
         this.ty = 0;
         this.sx = 1.0;
@@ -287,28 +309,43 @@
         this.rot = 0;
         this.flip_h = false;
         this.flip_v = false;
+
+        // An alpha mask hides parts of the masked layer where the mask is darker.
         this.mask = new Canvas();
+
         this.filters = [];
     };
 
+    // Sets the opacity of the layer (requires a number in the range 0.0-1.0).
     Layer.prototype.setOpacity = function (opacity) {
         this.opacity = clamp(opacity, 0, 1);
     };
 
+    // Within a canvas, a layer is by default positioned in the center.
+    // Translating moves the layer away from this center.
+    // Each successive call to the translate function performs an additional translation, it doesn't replace the previous one.
     Layer.prototype.translate = function (tx, ty) {
         this.tx += tx;
         this.ty += ty === undefined ? 0 : ty;
     };
 
+    // A layer is scaled around its own center.
+    // Scaling happens relatively in a 0.0-1.0 based range where 1.0 stands for 100%.
+    // Each successive call to the scale function performs an additional scaling operation, it doesn't replace the previous one.
+    // If only one parameter is supplied, the layer is scaled proportionally.
     Layer.prototype.scale = function (sx, sy) {
         this.sx *= sx;
         this.sy *= sy === undefined ? sx : sy;
     };
 
+    // A layer is rotated around its own center.
+    // The supplied parameter should be in degrees (not radians).
+    // Each successive call to the rotation function performs an additional rotation, it doesn't replace the previous one.
     Layer.prototype.rotate = function (rot) {
         this.rot += rot;
     };
 
+    // Flips the layer horizontally.
     Layer.prototype.flipHorizontal = function (arg) {
         if (arg !== undefined) {
             this.flip_h = arg;
@@ -317,6 +354,7 @@
         }
     };
 
+    // Flips the layer vertically.
     Layer.prototype.flipVertical = function (arg) {
         if (arg !== undefined) {
             this.flip_v = arg;
@@ -355,6 +393,9 @@
         return new Layer(toGradientData.apply(null, arguments), TYPE_GRADIENT);
     };
 
+
+    // CANVAS.
+
     Canvas = function (width, height) {
         if (!width) { width = DEFAULT_WIDTH; }
         if (!height) { height = DEFAULT_HEIGHT; }
@@ -364,6 +405,7 @@
         this.layers = [];
     };
 
+    // Creates a new layer from figuring out the given argument(s) and adds it to the canvas.
     Canvas.prototype.addLayer = function (arg0) {
         var layer;
 
@@ -397,6 +439,7 @@
         return layer;
     };
 
+    // Adds a new color layer to the canvas.
     Canvas.prototype.addColorLayer = function () {
         var c = toColor.apply(null, arguments),
             layer = new Layer(c, TYPE_FILL);
@@ -404,6 +447,7 @@
         return layer;
     };
 
+    // Adds a new gradient layer to the canvas.
     Canvas.prototype.addGradientLayer = function () {
         var c = toGradientData.apply(null, arguments),
             layer = new Layer(c, TYPE_GRADIENT);
@@ -411,12 +455,54 @@
         return layer;
     };
 
+    // Renders the canvas and passes the result (a html canvas) to the given callback function.
     Canvas.prototype.render = function (callback) {
         CanvasRenderer.render(this, callback);
     };
 
+
+    // RENDERING.
+
+    // The Layer and Canvas objects don't do any actual pixel operations themselves,
+    // they only contain information about the operations. The actual rendering is done
+    // by a Renderer object. Currently there is only one kind available, the CanvasRenderer,
+    // which uses the HTML Canvas object (containing the pixel data) and a 2D context that
+    // acts on this canvas object. In the future, a webgl renderer might be added as well.
+
     CanvasRenderer = {};
 
+    // Renders a html canvas as an html Image. Currently unused.
+    CanvasRenderer.toImage = function () {
+        return function (dCanvas, callback) {
+            var img = new Image();
+            img.width = dCanvas.width;
+            img.height = dCanvas.height;
+            img.src = dCanvas.toDataURL();
+            callback(null, img);
+        };
+    };
+
+
+    // "LOADING" OF LAYERS.
+
+    // Returns a html canvas dependent on the type of the layer provided.
+    CanvasRenderer.load = function (canvas, layer) {
+        if (layer.type === TYPE_PATH) {
+            return CanvasRenderer.loadFile(layer.data);
+        } else if (layer.type === TYPE_FILL) {
+            return CanvasRenderer.generateColor(canvas, layer);
+        } else if (layer.type === TYPE_GRADIENT) {
+            return CanvasRenderer.generateGradient(canvas, layer);
+        } else if (layer.type === TYPE_HTML_CANVAS) {
+            return CanvasRenderer.loadHtmlCanvas(layer.data);
+        } else if (layer.type === TYPE_IMAGE) {
+            return CanvasRenderer.loadImage(layer.data);
+        } else if (layer.type === TYPE_CANVAS) {
+            return CanvasRenderer.loadCanvas(layer.data);
+        }
+    };
+
+    // Returns a html canvas from an image file location.
     CanvasRenderer.loadFile = function (src) {
         return function (_, callback) {
             var source = new Image(),
@@ -433,12 +519,14 @@
         };
     };
 
+    // Passes a html canvas.
     CanvasRenderer.loadHtmlCanvas = function (dCanvas) {
         return function (_, callback) {
             callback(null, dCanvas);
         };
     };
 
+    // Returns a html canvas from rendering an entire img.js Canvas.
     CanvasRenderer.loadCanvas = function (canvas) {
         return function (_, callback) {
             canvas.render(function (dCanvas) {
@@ -447,6 +535,7 @@
         };
     };
 
+    // Returns a html canvas from rendering a stored Image file.
     CanvasRenderer.loadImage = function (img) {
         return function (_, callback) {
             var dCanvas = document.createElement('canvas'),
@@ -459,6 +548,7 @@
         };
     };
 
+    // Returns a html canvas with a solid fill color.
     CanvasRenderer.generateColor = function (canvas, layer) {
         return function (_, callback) {
             var width = layer.width !== undefined ? layer.width : canvas.width,
@@ -474,6 +564,7 @@
         };
     };
 
+    // Returns a html canvas with a gradient.
     CanvasRenderer.generateGradient = function (canvas, layer) {
         return function (_, callback) {
             var grd, x1, y1, x2, y2,
@@ -533,22 +624,11 @@
         };
     };
 
-    CanvasRenderer.load = function (canvas, layer) {
-        if (layer.type === TYPE_PATH) {
-            return CanvasRenderer.loadFile(layer.data);
-        } else if (layer.type === TYPE_FILL) {
-            return CanvasRenderer.generateColor(canvas, layer);
-        } else if (layer.type === TYPE_GRADIENT) {
-            return CanvasRenderer.generateGradient(canvas, layer);
-        } else if (layer.type === TYPE_HTML_CANVAS) {
-            return CanvasRenderer.loadHtmlCanvas(layer.data);
-        } else if (layer.type === TYPE_IMAGE) {
-            return CanvasRenderer.loadImage(layer.data);
-        } else if (layer.type === TYPE_CANVAS) {
-            return CanvasRenderer.loadCanvas(layer.data);
-        }
-    };
 
+    // PROCESSING OF LAYERS.
+
+    // Performs a number of filtering operations on an html image.
+    // This method executes on the main thread if web workers aren't available on the current system.
     CanvasRenderer._processNoWorker = function (filters) {
         if (filters.length === 0) { return passThrough; }
 
@@ -575,6 +655,8 @@
         };
     };
 
+    // Performs a number of filtering operations on an html image.
+    // This method uses web workers (when present).
     CanvasRenderer._processWithWorker = function (filters) {
         if (filters.length === 0) { return passThrough; }
 
@@ -600,15 +682,6 @@
         };
     };
 
-    CanvasRenderer.toImage = function () {
-        return function (dCanvas, callback) {
-            var img = new Image();
-            img.width = dCanvas.width;
-            img.height = dCanvas.height;
-            img.src = dCanvas.toDataURL();
-            callback(null, img);
-        };
-    };
 
     if (!window.Worker) {
         CanvasRenderer.processImage = CanvasRenderer._processNoWorker;
@@ -616,11 +689,15 @@
         CanvasRenderer.processImage = CanvasRenderer._processWithWorker;
     }
 
+    // Renders the layer mask and applies it to the layer that it is supposed to mask.
     CanvasRenderer.processMask = function (mask) {
         if (mask.layers.length === 0) { return passThrough; }
         return function (dCanvas, callback) {
             mask.width = dCanvas.width;
             mask.height = dCanvas.height;
+
+            // First, make a black and white version of the masking canvas and pass
+            // the result to the masking operation.
             CanvasRenderer.renderBW(mask, function (c) {
                 var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
                     maskFilter = {name: "mask", options: {data: data, x: 0, y: 0, width: c.width, height: c.height} },
@@ -630,6 +707,8 @@
         };
     };
 
+    // Processes a single layer. First the layer image is loaded, then a mask (if applicable) is applied to it,
+    // and finally the filters (if any) are applied to it.
     function processLayers(canvas) {
         return function (layer, callback) {
             async.compose(
@@ -640,6 +719,10 @@
         };
     }
 
+
+    // LAYER TRANFORMATIONS.
+
+    // Transforms the 2d context that acts upon this layer's image. Utility function. -> Rename this?
     function transformLayer(ctx, canvas, layer) {
         var translate = layer.tx !== 0 || layer.ty !== 0,
             scale = layer.sx !== 1 || layer.sy !== 1,
@@ -664,6 +747,8 @@
         }
     }
 
+    // Transforms the bounds of a layer (the bounding rectangle) and returns the bounding rectangle
+    // that encloses this transformed rectangle.
     function transformRect(canvas, layer) {
         var i, pt, minx, miny, maxx, maxy, t,
             width = layer.img.width,
@@ -697,6 +782,7 @@
         return {x: minx, y: miny, width: maxx - minx, height: maxy - miny};
     }
 
+    // Calculates the intersecting rectangle of two input rectangles.
     function rectIntersect(r1, r2) {
         var right1 = r1.x + r1.width,
             bottom1 = r1.y + r1.height,
@@ -710,6 +796,8 @@
         return {x: x, y: y, width: w, height: h};
     }
 
+    // Calculates the mimimal area that a transformed layer needs so that it
+    // can still be drawn on the canvas. Returns a rectangle.
     function calcLayerRect(canvas, layer) {
         var rect = transformRect(canvas, layer);
         rect = rectIntersect(rect, {x: 0, y: 0, width: canvas.width, height: canvas.height});
@@ -719,6 +807,7 @@
                  height: Math.ceil(rect.height)};
     }
 
+    // Transforms a layer and returns the resulting pixel data.
     function getTransformedLayerData(canvas, layer, rect) {
         var dCanvas = document.createElement('canvas'),
             ctx = dCanvas.getContext('2d');
@@ -730,6 +819,11 @@
         return ctx.getImageData(0, 0, rect.width, rect.height);
     }
 
+
+    // LAYER BLENDING.
+
+    // Blends the subsequent layer images with the base layer and returns a single image.
+    // This method is used when web workers aren't available for use on this system.
     CanvasRenderer._mergeNoWorker = function (canvas, layerData) {
         return function (dCanvas, callback) {
             var i, layer, blendData, tmpData, layerOptions, rect,
@@ -760,6 +854,8 @@
         };
     };
 
+    // Blends the subsequent layer images with the base layer and returns a single image.
+    // This method uses web workers if they are available.
     CanvasRenderer._mergeWithWorker = function (canvas, layerData) {
         return function (dCanvas, callback) {
             var i, layer, blendData, layerOptions, rect,
@@ -801,6 +897,8 @@
         CanvasRenderer.mergeManualBlend = CanvasRenderer._mergeWithWorker;
     }
 
+    // Renders a single layer. This is useful when there's only one layer available (and no blending is needed)
+    // or to render the base layer on which subsequent layers are blended.
     CanvasRenderer.singleLayerWithOpacity = function (canvas, layer) {
         var dCanvas = document.createElement('canvas'),
             ctx = dCanvas.getContext('2d');
@@ -818,6 +916,8 @@
         return dCanvas;
     };
 
+    // Blends the subsequent layer images with the base layer and returns the resulting image.
+    // This method is used when the system supports the requested blending mode(s).
     CanvasRenderer.mergeNativeBlend = function (canvas, layerData) {
         return function (dCanvas, callback) {
             var i, layer,
@@ -839,6 +939,7 @@
         };
     };
 
+    // Merges the different canvas layers together in a single image and returns this as a html canvas.
     CanvasRenderer.merge = function (canvas, layerData, callback) {
         var i, mode, useNative, currentList,
             layer = layerData[0],
@@ -885,6 +986,8 @@
         CanvasRenderer.merge(canvas, layerData, callback);
     };
 
+    // Returns an object with additional layer information as well as the input images
+    // to be passed to the different processing functions.
     function getLayerData(canvas, layerImages) {
         var i, d, x, y, layer, layerImg, layerData = [];
         for (i = 0; i < layerImages.length; i += 1) {
@@ -905,6 +1008,7 @@
         return layerData;
     }
 
+    // Renders the canvas. Top level.
     CanvasRenderer.render = function (canvas, callback) {
         async.map(canvas.layers,
               processLayers(canvas), function (err, layerImages) {
@@ -914,6 +1018,7 @@
             });
     };
 
+    // Renders the canvas and turns it into a black and white image. Useful for rendering a layer mask.
     CanvasRenderer.renderBW = function (canvas, callback) {
         CanvasRenderer.render(canvas, function (dCanvas) {
             var data = dCanvas.getContext('2d').getImageData(0, 0, dCanvas.width, dCanvas.height).data,

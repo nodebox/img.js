@@ -6,6 +6,8 @@
 
     var blend, process;
 
+    // Tests which blending modes are supported on the current system and returns a dictionary with the results.
+    // For example d['source-over'] always results in true.
     function getNativeModes() {
         var i, mode, darken, ok,
             nativeModes = {},
