@@ -37,23 +37,23 @@
             var layer, mask,
                 w = 360,
                 h = 360,
-                canvas = new img.Canvas(600, 450),
-                dCanvas = document.createElement('canvas'),
-                ctx = dCanvas.getContext('2d');
+                iCanvas = new img.ImageCanvas(600, 450),
+                canvas = document.createElement('canvas'),
+                ctx = canvas.getContext('2d');
 
-            layer = canvas.addLayer("images/img1.jpg");
-            layer.addFilter("coloradjust", {r: 0.25, g: 0.25});
-            layer = canvas.addLayer("images/img2.jpg");
-            layer.addFilter("coloradjust", {r: 0.30, g: 0.20, b: 0.35});
+            layer = iCanvas.addLayer('images/img1.jpg');
+            layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
+            layer = iCanvas.addLayer('images/img2.jpg');
+            layer.addFilter('coloradjust', {r: 0.30, g: 0.20, b: 0.35});
 
-            dCanvas.width = w;
-            dCanvas.height = h;
-            ctx.fillStyle = "grey";
+            canvas.width = w;
+            canvas.height = h;
+            ctx.fillStyle = 'grey';
             drawEllipseByCenter(ctx, w / 2, h / 2, w, h)
-            mask = layer.mask.addLayer(dCanvas);
+            mask = layer.mask.addLayer(canvas);
 
-            canvas.render(function (dCanvas) {
-                document.body.appendChild(dCanvas);
+            iCanvas.render(function (canvas) {
+                document.body.appendChild(canvas);
             });
         };
     </script>

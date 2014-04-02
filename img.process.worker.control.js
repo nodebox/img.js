@@ -1,6 +1,6 @@
 /*global importScripts, self, process */
 
-importScripts("process.js");
+importScripts('process.js');
 
 self.onmessage = function (e) {
     'use strict';

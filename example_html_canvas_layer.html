@@ -37,33 +37,33 @@
             var layer, mask,
                 w = 360,
                 h = 360,
-                canvas = new img.Canvas(600, 450),
-                dCanvas = document.createElement('canvas'),
-                ctx = dCanvas.getContext('2d'),
-                canvas2 = new img.Canvas(650, 500);
+                iCanvas = new img.ImageCanvas(600, 450),
+                canvas = document.createElement('canvas'),
+                ctx = canvas.getContext('2d'),
+                iCanvas2 = new img.ImageCanvas(650, 500);
 
-            layer = canvas.addLayer("images/img1.jpg");
-            layer.addFilter("coloradjust", {r: 0.25, g: 0.25});
-            layer = canvas.addLayer("images/img2.jpg");
-            layer.addFilter("coloradjust", {r: 0.30, g: 0.20, b: 0.35});
+            layer = iCanvas.addLayer('images/img1.jpg');
+            layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
+            layer = iCanvas.addLayer('images/img2.jpg');
+            layer.addFilter('coloradjust', {r: 0.30, g: 0.20, b: 0.35});
 
-            dCanvas.width = w;
-            dCanvas.height = h;
-            ctx.fillStyle = "grey";
+            canvas.width = w;
+            canvas.height = h;
+            ctx.fillStyle = 'grey';
             drawEllipseByCenter(ctx, w / 2, h / 2, w, h)
-            mask = layer.mask.addLayer(dCanvas);
+            mask = layer.mask.addLayer(canvas);
 
-            canvas2.addLayer("black", "cornflowerblue", 90, 0.65);
-            layer = canvas2.addLayer("black", "gold", 270, 0.65);
-            layer.blendmode = "screen";
-            layer = canvas2.addLayer("black", "crimson", 0, 0.65);
-            layer.blendmode = "screen";
-            layer = canvas2.addLayer("black", "honeydew", 180, 0.65);
-            layer.blendmode = "screen";
-            layer = canvas2.addLayer(canvas);
-            layer.blendmode = "lighten";
-            canvas2.render(function (c) {
-                document.body.appendChild(c);
+            iCanvas2.addLayer('black', 'cornflowerblue', 90, 0.65);
+            layer = iCanvas2.addLayer('black', 'gold', 270, 0.65);
+            layer.blendmode = 'screen';
+            layer = iCanvas2.addLayer('black', 'crimson', 0, 0.65);
+            layer.blendmode = 'screen';
+            layer = iCanvas2.addLayer('black', 'honeydew', 180, 0.65);
+            layer.blendmode = 'screen';
+            layer = iCanvas2.addLayer(iCanvas);
+            layer.blendmode = 'lighten';
+            iCanvas2.render(function (canvas) {
+                document.body.appendChild(canvas);
             });
         };
     </script>

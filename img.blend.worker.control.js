@@ -1,6 +1,6 @@
 /*global importScripts, self, blend */
 
-importScripts("blend.js");
+importScripts('blend.js');
 
 self.onmessage = function (e) {
     'use strict';

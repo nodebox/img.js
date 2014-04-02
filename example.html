@@ -10,16 +10,16 @@
     <script>
         window.onload = function () {
             var layer,
-                canvas = new img.Canvas(600, 450);
-            layer = canvas.addLayer("images/img1.jpg");
-            layer.addFilter("coloradjust", {r: 0.25, g: 0.25});
-            layer = canvas.addLayer("images/img2.jpg");
-            layer.addFilter("coloradjust", {r: 0.30, g: -0.10, b: -0.15});
-            layer.addFilter("invert");
+                iCanvas = new img.ImageCanvas(600, 450);
+            layer = iCanvas.addLayer('images/img1.jpg');
+            layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
+            layer = iCanvas.addLayer('images/img2.jpg');
+            layer.addFilter('coloradjust', {r: 0.30, g: -0.10, b: -0.15});
+            layer.addFilter('invert');
             layer.opacity = 0.3;
 
-            canvas.render(function (c) {
-                document.body.appendChild(c);
+            iCanvas.render(function (canvas) {
+                document.body.appendChild(canvas);
             });
         };
     </script>
