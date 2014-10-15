@@ -1,5 +1,5 @@
 /*jslint nomen: true, bitwise: true */
-/*global module, console, require, define, window, self */
+/*global module, document, console, require, define, window, self */
 
 (function () {
     'use strict';
@@ -15,16 +15,16 @@
             ctx = dCanvas.getContext('2d'),
 
             native = ['source-over', 'source-in', 'source-out', 'source-atop',
-		        'destination-over', 'destination-in', 'destination-out',
-		        'destination-atop', 'lighter', 'darker', 'copy', 'xor'],
+                'destination-over', 'destination-in', 'destination-out',
+                'destination-atop', 'lighter', 'darker', 'copy', 'xor'],
 
             maybeNative = ['multiply', 'screen', 'overlay', 'soft-light', 'hard-light',
-                          'color-dodge', 'color-burn', 'darken', 'lighten', 'difference',
-                          'exclusion', 'hue', 'saturation', 'luminosity', 'color',
-                          'add', 'subtract', 'average', 'negation'],
+                'color-dodge', 'color-burn', 'darken', 'lighten', 'difference',
+                'exclusion', 'hue', 'saturation', 'luminosity', 'color',
+                'add', 'subtract', 'average', 'negation'],
 
             nonNative = ['divide', 'darker-color', 'lighter-color', 'linear-burn', 'linear-light',
-                         'vivid-light', 'pin-light', 'hard-mix'];
+                'vivid-light', 'pin-light', 'hard-mix'];
 
         for (i = 0; i < native.length; i += 1) {
             nativeModes[native[i]] = true;
@@ -48,7 +48,8 @@
                     ctx.fillRect(0, 0, 1, 1);
                     ok = ctx.getImageData(0, 0, 1, 1).data[0] !== (darken ? 170 : 51);
                 }
-            } catch (e) {}
+            } catch (e) {
+            }
             ctx.restore();
             nativeModes[mode] = ok;
         }
@@ -66,8 +67,8 @@
             div_2_255 = 2 / 255;
 
         /*R = 0.299;
-        G = 0.587;
-        B = 0.114;*/
+         G = 0.587;
+         B = 0.114;*/
 
         R = 0.2126;
         G = 0.7152;
@@ -97,7 +98,7 @@
                 h = 60 * (g - b) / s;
             } else if ((g > r) && (r >= b)) {  // Sector 1: 60° - 120°
                 s = g - b;
-                h = 60 * (g - r) / s  + 60;
+                h = 60 * (g - r) / s + 60;
             } else if ((g >= b) && (b > r)) {  // Sector 2: 120° - 180°
                 s = g - r;
                 h = 60 * (b - r) / s + 120;
@@ -777,7 +778,7 @@
                 dx = options.dx || 0,
                 dy = options.dy || 0,
                 ri = rectIntersect({x: 0, y: 0, width: width, height: height},
-                                   {x: dx, y: dy, width: options.width, height: options.height}),
+                    {x: dx, y: dy, width: options.width, height: options.height}),
                 xi = ri[0],
                 yi = ri[1],
                 wi = ri[2],
@@ -864,10 +865,10 @@
         var i, mode,
             d = { blend: _blend },
             modes = ['source-over', 'add', 'multiply', 'subtract', 'divide', 'screen',
-                    'lighten', 'darken', 'darker-color', 'lighter-color', 'linear-burn',
-                    'difference', 'exclusion', 'overlay', 'soft-light', 'hard-light',
-                    'color-dodge', 'color-burn', 'linear-light', 'vivid-light', 'pin-light',
-                    'hard-mix', 'hue', 'saturation', 'luminosity', 'color'];
+                'lighten', 'darken', 'darker-color', 'lighter-color', 'linear-burn',
+                'difference', 'exclusion', 'overlay', 'soft-light', 'hard-light',
+                'color-dodge', 'color-burn', 'linear-light', 'vivid-light', 'pin-light',
+                'hard-mix', 'hue', 'saturation', 'luminosity', 'color'];
         for (i = 0; i < modes.length; i += 1) {
             mode = modes[i];
             d[mode] = _wrap(mode);
@@ -884,16 +885,6 @@
 
     // MODULE SUPPORT ///////////////////////////////////////////////////////
 
-    if (typeof module !== 'undefined') {
-        module.exports = blend;
-    } else if (typeof define !== 'undefined') {
-        define('blend', ['underscore'], function () {
-            return blend;
-        });
-    } else if (typeof self !== 'undefined') {
-        self.blend = blend;
-    } else {
-        window.blend = blend;
-    }
+    module.exports = blend;
 
 }());

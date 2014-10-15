@@ -1,14 +1,30 @@
 {
-    "name": "img.js",
-    "description": "A JavaScript library for bitmap graphics.",
-    "keywords": ["bitmap", "pixel", "graphics", "canvas", "2d"],
-    "version": "0.0.1",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/stebanos/img.js.git"
-    },
-    "dependencies": {
-        "async": "~0.2.10"
-    },
-    "main": "img.js"
+  "name": "img.js",
+  "description": "A JavaScript library for bitmap graphics.",
+  "keywords": [
+    "bitmap",
+    "pixel",
+    "graphics",
+    "canvas",
+    "2d"
+  ],
+  "version": "0.0.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stebanos/img.js.git"
+  },
+  "dependencies": {
+    "async": "~0.2.10"
+  },
+  "devDependencies": {
+    "jshint": "~2.4.4",
+    "browserify": "^5.12.1",
+    "watchify": "^1.0.6"
+  },
+  "main": "img.js",
+  "scripts": {
+    "ensure-build-dir": "mkdir -p build",
+    "browserify": "npm run ensure-build-dir && browserify src/img.js --standalone img > build/img.js",
+    "watchify": "npm run ensure-build-dir && watchify src/img.js --standalone img --debug -o build/img.js -v"
+  }
 }

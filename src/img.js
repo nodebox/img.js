@@ -1,29 +1,32 @@
 /*jslint nomen:true */
-/*global _, async, console, Image, HTMLCanvasElement, document, module, define, require, window, process, blend */
+/*global _, console, Image, HTMLCanvasElement, document, module, define, require, window */
 
 (function () {
     'use strict';
 
-    var img, ImageCanvas, Layer, CanvasRenderer,
+    var async = require('async');
+    var blend = require('./blend');
+    var process = require('./process');
 
-        DEFAULT_WIDTH = 800,
-        DEFAULT_HEIGHT = 800,
+    var img, ImageCanvas, Layer, CanvasRenderer;
 
-        // Different layer types.
-        TYPE_PATH = 'path',
-        TYPE_IMAGE = 'image',
-        TYPE_HTML_CANVAS = 'htmlCanvas',
-        TYPE_IMAGE_CANVAS = 'iCanvas',
-        TYPE_FILL = 'fill',
-        TYPE_GRADIENT = 'gradient',
+    var DEFAULT_WIDTH = 800;
+    var DEFAULT_HEIGHT = 800;
 
-        // Named colors supported by all browsers.
-        // See: http://www.w3schools.com/html/html_colornames.asp
-        colors = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'transparent', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'],
+    // Different layer types.
+    var TYPE_PATH = 'path';
+    var TYPE_IMAGE = 'image';
+    var TYPE_HTML_CANVAS = 'htmlCanvas';
+    var TYPE_IMAGE_CANVAS = 'iCanvas';
+    var TYPE_FILL = 'fill';
+    var TYPE_GRADIENT = 'gradient';
 
-        // Dictionary of blend modes that the client browser does or does not support.
-        nativeBlendModes = blend.getNativeModes();
+    // Named colors supported by all browsers.
+    // See: http://www.w3schools.com/html/html_colornames.asp
+    var colors = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'transparent', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'];
 
+    // Dictionary of blend modes that the client browser does or does not support.
+    var nativeBlendModes = blend.getNativeModes();
 
     // UTILITIES.
 
@@ -66,7 +69,9 @@
 
         return {
             scale: function (x, y) {
-                if (y === undefined) { y = x; }
+                if (y === undefined) {
+                    y = x;
+                }
                 _mmult([x, 0, 0, 0, y, 0, 0, 0, 1]);
             },
 
@@ -84,7 +89,7 @@
                 var x = point.x,
                     y = point.y;
                 return {x: x * m[0] + y * m[3] + m[6],
-                        y: x * m[1] + y * m[4] + m[7]};
+                    y: x * m[1] + y * m[4] + m[7]};
             }
         };
     }
@@ -114,9 +119,15 @@
             _b = v1.b;
             _a = v1.a !== undefined ? v1.a : options.base || 1;
         } else if (typeof v1 === 'string') {
-            if (v1.indexOf('#') === 0) { return v1; }
-            if (v1.indexOf('rgb') === 0) { return v1; }
-            if (colors.indexOf(v1) !== -1) { return v1; }
+            if (v1.indexOf('#') === 0) {
+                return v1;
+            }
+            if (v1.indexOf('rgb') === 0) {
+                return v1;
+            }
+            if (colors.indexOf(v1) !== -1) {
+                return v1;
+            }
         } else if (typeof v1 === 'number') {
             if (arguments.length === 1) { // Grayscale value
                 _r = _g = _b = v1;
@@ -224,8 +235,12 @@
             }
         }
 
-        if (!startColor && startColor !== 0) { throw new Error('No startColor was given.'); }
-        if (!endColor && endColor !== 0) { throw new Error('No endColor was given.'); }
+        if (!startColor && startColor !== 0) {
+            throw new Error('No startColor was given.');
+        }
+        if (!endColor && endColor !== 0) {
+            throw new Error('No endColor was given.');
+        }
 
         try {
             data.startColor = toColor(startColor);
@@ -239,20 +254,26 @@
             throw new Error('endColor is not a valid color: ' + endColor);
         }
 
-        if (type === undefined) { type = 'linear'; }
+        if (type === undefined) {
+            type = 'linear';
+        }
         if (type !== 'linear' && type !== 'radial') {
             throw new Error('Unknown gradient type: ' + type);
         }
 
         data.type = type;
 
-        if (spread === undefined) { spread = 0; }
+        if (spread === undefined) {
+            spread = 0;
+        }
         if (typeof spread !== 'number') {
             throw new Error('Spread value is not a number: ' + spread);
         }
 
         if (type === 'linear') {
-            if (rotation === undefined) { rotation = 0; }
+            if (rotation === undefined) {
+                rotation = 0;
+            }
             if (typeof rotation !== 'number') {
                 throw new Error('Rotation value is not a number: ' + rotation);
             }
@@ -293,7 +314,9 @@
     // IMAGE LAYER.
 
     Layer = function (data, type) {
-        if (!type) { type = findType(data); }
+        if (!type) {
+            type = findType(data);
+        }
         this.data = data;
         this.type = type;
 
@@ -405,8 +428,12 @@
     // IMAGE CANVAS.
 
     ImageCanvas = function (width, height) {
-        if (!width) { width = DEFAULT_WIDTH; }
-        if (!height) { height = DEFAULT_HEIGHT; }
+        if (!width) {
+            width = DEFAULT_WIDTH;
+        }
+        if (!height) {
+            height = DEFAULT_HEIGHT;
+        }
 
         this.width = width;
         this.height = height;
@@ -592,7 +619,9 @@
                 // Rotation code taken from html5-canvas-gradient-creator:
                 // Website: http://victorblog.com/html5-canvas-gradient-creator/
                 // Code: https://github.com/evictor/html5-canvas-gradient-creator/blob/master/js/src/directive/previewCanvas.coffee
-                if (rotateDegrees < 0) { rotateDegrees += 360; }
+                if (rotateDegrees < 0) {
+                    rotateDegrees += 360;
+                }
                 if ((0 <= rotateDegrees && rotateDegrees < 45)) {
                     x1 = 0;
                     y1 = height / 2 * (45 - rotateDegrees) / 45;
@@ -637,8 +666,10 @@
 
     // Performs a number of filtering operations on an html image.
     // This method executes on the main thread if web workers aren't available on the current system.
-    CanvasRenderer._processNoWorker = function (filters) {
-        if (filters.length === 0) { return passThrough; }
+    CanvasRenderer.processImage = function (filters) {
+        if (filters.length === 0) {
+            return passThrough;
+        }
 
         return function (canvas, callback) {
             var i, filter, tmpData,
@@ -663,43 +694,11 @@
         };
     };
 
-    // Performs a number of filtering operations on an html image.
-    // This method uses web workers (when present).
-    CanvasRenderer._processWithWorker = function (filters) {
-        if (filters.length === 0) { return passThrough; }
-
-        return function (canvas, callback) {
-            var ctx = canvas.getContext('2d'),
-                width = canvas.width,
-                height = canvas.height,
-                inData = ctx.getImageData(0, 0, width, height),
-                outData = createImageData(ctx, width, height),
-                worker = new window.Worker('img.process.worker.control.js');
-
-            worker.onmessage = function (e) {
-                outData = e.data.result;
-                ctx.putImageData(outData, 0, 0);
-                callback(null, canvas);
-            };
-
-            worker.postMessage({ inData: inData,
-                                 outData: outData,
-                                 width: width,
-                                 height: height,
-                                 filters: filters });
-        };
-    };
-
-
-    if (!window.Worker) {
-        CanvasRenderer.processImage = CanvasRenderer._processNoWorker;
-    } else {
-        CanvasRenderer.processImage = CanvasRenderer._processWithWorker;
-    }
-
     // Renders the layer mask and applies it to the layer that it is supposed to mask.
     CanvasRenderer.processMask = function (mask) {
-        if (mask.layers.length === 0) { return passThrough; }
+        if (mask.layers.length === 0) {
+            return passThrough;
+        }
         return function (canvas, callback) {
             mask.width = canvas.width;
             mask.height = canvas.height;
@@ -781,10 +780,18 @@
                 minx = maxx = pt.x;
                 miny = maxy = pt.y;
             } else {
-                if (pt.x < minx) { minx = pt.x; }
-                if (pt.x > maxx) { maxx = pt.x; }
-                if (pt.y < miny) { miny = pt.y; }
-                if (pt.y > maxy) { maxy = pt.y; }
+                if (pt.x < minx) {
+                    minx = pt.x;
+                }
+                if (pt.x > maxx) {
+                    maxx = pt.x;
+                }
+                if (pt.y < miny) {
+                    miny = pt.y;
+                }
+                if (pt.y > maxy) {
+                    maxy = pt.y;
+                }
             }
         }
         return {x: minx, y: miny, width: maxx - minx, height: maxy - miny};
@@ -810,9 +817,9 @@
         var rect = transformRect(iCanvas, layer);
         rect = rectIntersect(rect, {x: 0, y: 0, width: iCanvas.width, height: iCanvas.height});
         return { x: Math.round(rect.x),
-                 y: Math.round(rect.y),
-                 width: Math.ceil(rect.width),
-                 height: Math.ceil(rect.height)};
+            y: Math.round(rect.y),
+            width: Math.ceil(rect.width),
+            height: Math.ceil(rect.height)};
     }
 
     // Transforms a layer and returns the resulting pixel data.
@@ -832,7 +839,7 @@
 
     // Blends the subsequent layer images with the base layer and returns a single image.
     // This method is used when web workers aren't available for use on this system.
-    CanvasRenderer._mergeNoWorker = function (iCanvas, layerData) {
+    CanvasRenderer.mergeManualBlend = function (iCanvas, layerData) {
         return function (canvas, callback) {
             var i, layer, blendData, tmpData, layerOptions, rect,
                 ctx = canvas.getContext('2d'),
@@ -861,49 +868,6 @@
             callback(null, canvas);
         };
     };
-
-    // Blends the subsequent layer images with the base layer and returns a single image.
-    // This method uses web workers if they are available.
-    CanvasRenderer._mergeWithWorker = function (iCanvas, layerData) {
-        return function (canvas, callback) {
-            var i, layer, blendData, layerOptions, rect,
-                data = [],
-                ctx = canvas.getContext('2d'),
-                width = iCanvas.width,
-                height = iCanvas.height,
-                baseData = ctx.getImageData(0, 0, width, height),
-                outData = createImageData(ctx, width, height),
-                worker = new window.Worker('img.blend.worker.control.js');
-
-            worker.onmessage = function (e) {
-                outData = e.data.result;
-                ctx.putImageData(outData, 0, 0);
-                callback(null, canvas);
-            };
-
-            for (i = 0; i < layerData.length; i += 1) {
-                layer = layerData[i];
-                rect = calcLayerRect(iCanvas, layer);
-                if (rect.width > 0 && rect.height > 0) {
-                    blendData = getTransformedLayerData(iCanvas, layer, rect);
-                    layerOptions = {blendmode: layer.blendmode, data: blendData.data, width: rect.width, height: rect.height, opacity: layer.opacity, dx: rect.x, dy: rect.y};
-                    data.push(layerOptions);
-                }
-            }
-
-            worker.postMessage({ inData: baseData,
-                                 outData: outData,
-                                 width: width,
-                                 height: height,
-                                 layerData: data });
-        };
-    };
-
-    if (!window.Worker) {
-        CanvasRenderer.mergeManualBlend = CanvasRenderer._mergeNoWorker;
-    } else {
-        CanvasRenderer.mergeManualBlend = CanvasRenderer._mergeWithWorker;
-    }
 
     // Renders a single layer. This is useful when there's only one layer available (and no blending is needed)
     // or to render the base layer on which subsequent layers are blended.
@@ -952,7 +916,9 @@
         var i, mode, useNative, currentList,
             layer = layerData[0],
             canvas = CanvasRenderer.singleLayerWithOpacity(iCanvas, layer),
-            renderPipe = [function (_, cb) { cb(null, canvas); }];
+            renderPipe = [function (_, cb) {
+                cb(null, canvas);
+            }];
 
         function pushList() {
             if (useNative !== undefined) {
@@ -1004,13 +970,13 @@
             x = (iCanvas.width - layerImg.width) / 2;
             y = (iCanvas.height - layerImg.height) / 2;
             d = { img: layerImg, x: x, y: y,
-                  opacity: layer.opacity,
-                  blendmode: layer.blendmode,
-                  tx: layer.tx, ty: layer.ty,
-                  sx: layer.sx, sy: layer.sy,
-                  rot: layer.rot,
-                  flip_h: layer.flip_h, flip_v: layer.flip_v
-                };
+                opacity: layer.opacity,
+                blendmode: layer.blendmode,
+                tx: layer.tx, ty: layer.ty,
+                sx: layer.sx, sy: layer.sy,
+                rot: layer.rot,
+                flip_h: layer.flip_h, flip_v: layer.flip_v
+            };
             layerData.push(d);
         }
         return layerData;
@@ -1019,7 +985,7 @@
     // Renders the image canvas. Top level.
     CanvasRenderer.render = function (iCanvas, callback) {
         async.map(iCanvas.layers,
-              processLayers(iCanvas), function (err, layerImages) {
+            processLayers(iCanvas), function (err, layerImages) {
                 if (callback) {
                     CanvasRenderer.composite(iCanvas, getLayerData(iCanvas, layerImages), callback);
                 }
@@ -1044,14 +1010,6 @@
 
     // MODULE SUPPORT ///////////////////////////////////////////////////////
 
-    if (typeof module !== 'undefined') {
-        module.exports = img;
-    } else if (typeof define !== 'undefined') {
-        define('img', ['underscore'], function () {
-            return img;
-        });
-    } else {
-        window.img = img;
-    }
+    module.exports = img;
 
 }());

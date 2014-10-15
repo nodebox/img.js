@@ -18,7 +18,9 @@
     'use strict';
 
     function defaultOptions(options, defaults) {
-        if (!options) { return defaults; }
+        if (!options) {
+            return defaults;
+        }
         var opt, o = {};
         for (opt in defaults) {
             if (defaults.hasOwnProperty(opt)) {
@@ -63,8 +65,12 @@
             pyp = pyc - width * 4;
             pyn = pyc + width * 4;
 
-            if (y < 1) { pyp = pyc; }
-            if (y >= width - 1) { pyn = pyc; }
+            if (y < 1) {
+                pyp = pyc;
+            }
+            if (y >= width - 1) {
+                pyn = pyc;
+            }
 
             for (x = 0; x < width; x += 1) {
                 idx = (y * width + x) * 4;
@@ -73,8 +79,12 @@
                 pxp = pxc - 4;
                 pxn = pxc + 4;
 
-                if (x < 1) { pxp = pxc; }
-                if (x >= width - 1) { pxn = pxc; }
+                if (x < 1) {
+                    pxp = pxc;
+                }
+                if (x >= width - 1) {
+                    pxn = pxc;
+                }
 
                 p00 = pyp + pxp;
                 p01 = pyp + pxc;
@@ -86,22 +96,22 @@
                 p21 = pyn + pxc;
                 p22 = pyn + pxn;
 
-                r   = inData[p00] * k00 + inData[p01] * k01 + inData[p02] * k02
-                    + inData[p10] * k10 + inData[p11] * k11 + inData[p12] * k12
-                    + inData[p20] * k20 + inData[p21] * k21 + inData[p22] * k22;
+                r = inData[p00] * k00 + inData[p01] * k01 + inData[p02] * k02 +
+                    inData[p10] * k10 + inData[p11] * k11 + inData[p12] * k12 +
+                    inData[p20] * k20 + inData[p21] * k21 + inData[p22] * k22;
 
-                g   = inData[p00 + 1] * k00 + inData[p01 + 1] * k01 + inData[p02 + 1] * k02
-                    + inData[p10 + 1] * k10 + inData[p11 + 1] * k11 + inData[p12 + 1] * k12
-                    + inData[p20 + 1] * k20 + inData[p21 + 1] * k21 + inData[p22 + 1] * k22;
+                g = inData[p00 + 1] * k00 + inData[p01 + 1] * k01 + inData[p02 + 1] * k02 +
+                    inData[p10 + 1] * k10 + inData[p11 + 1] * k11 + inData[p12 + 1] * k12 +
+                    inData[p20 + 1] * k20 + inData[p21 + 1] * k21 + inData[p22 + 1] * k22;
 
-                b   = inData[p00 + 2] * k00 + inData[p01 + 2] * k01 + inData[p02 + 2] * k02
-                    + inData[p10 + 2] * k10 + inData[p11 + 2] * k11 + inData[p12 + 2] * k12
-                    + inData[p20 + 2] * k20 + inData[p21 + 2] * k21 + inData[p22 + 2] * k22;
+                b = inData[p00 + 2] * k00 + inData[p01 + 2] * k01 + inData[p02 + 2] * k02 +
+                    inData[p10 + 2] * k10 + inData[p11 + 2] * k11 + inData[p12 + 2] * k12 +
+                    inData[p20 + 2] * k20 + inData[p21 + 2] * k21 + inData[p22 + 2] * k22;
 
                 if (alpha) {
-                    a   = inData[p00 + 3] * k00 + inData[p01 + 3] * k01 + inData[p02 + 3] * k02
-                        + inData[p10 + 3] * k10 + inData[p11 + 3] * k11 + inData[p12 + 3] * k12
-                        + inData[p20 + 3] * k20 + inData[p21 + 3] * k21 + inData[p22 + 3] * k22;
+                    a = inData[p00 + 3] * k00 + inData[p01 + 3] * k01 + inData[p02 + 3] * k02 +
+                        inData[p10 + 3] * k10 + inData[p11 + 3] * k11 + inData[p12 + 3] * k12 +
+                        inData[p20 + 3] * k20 + inData[p21 + 3] * k21 + inData[p22 + 3] * k22;
                 } else {
                     a = inData[idx + 3];
                 }
@@ -148,10 +158,18 @@
             pyn = pyc + width * 4;
             pynn = pyc + width * 4 * 2;
 
-            if (y < 1) { pyp = pyc; }
-            if (y >= width - 1) { pyn = pyc; }
-            if (y < 2) { pypp = pyp; }
-            if (y >= width - 2) { pynn = pyn; }
+            if (y < 1) {
+                pyp = pyc;
+            }
+            if (y >= width - 1) {
+                pyn = pyc;
+            }
+            if (y < 2) {
+                pypp = pyp;
+            }
+            if (y >= width - 2) {
+                pynn = pyn;
+            }
 
             for (x = 0; x < width; x += 1) {
                 idx = (y * width + x) * 4;
@@ -162,61 +180,69 @@
                 pxpp = pxc - 8;
                 pxnn = pxc + 8;
 
-                if (x < 1) { pxp = pxc; }
-                if (x >= width - 1) { pxn = pxc; }
-                if (x < 2) { pxpp = pxp; }
-                if (x >= width - 2) { pxnn = pxn; }
+                if (x < 1) {
+                    pxp = pxc;
+                }
+                if (x >= width - 1) {
+                    pxn = pxc;
+                }
+                if (x < 2) {
+                    pxpp = pxp;
+                }
+                if (x >= width - 2) {
+                    pxnn = pxn;
+                }
 
                 p00 = pypp + pxpp;
                 p01 = pypp + pxp;
                 p02 = pypp + pxc;
                 p03 = pypp + pxn;
                 p04 = pypp + pxnn;
-                p10 = pyp  + pxpp;
-                p11 = pyp  + pxp;
-                p12 = pyp  + pxc;
-                p13 = pyp  + pxn;
-                p14 = pyp  + pxnn;
-                p20 = pyc  + pxpp;
-                p21 = pyc  + pxp;
-                p22 = pyc  + pxc;
-                p23 = pyc  + pxn;
-                p24 = pyc  + pxnn;
-                p30 = pyn  + pxpp;
-                p31 = pyn  + pxp;
-                p32 = pyn  + pxc;
-                p33 = pyn  + pxn;
-                p34 = pyn  + pxnn;
+                p10 = pyp + pxpp;
+                p11 = pyp + pxp;
+                p12 = pyp + pxc;
+                p13 = pyp + pxn;
+                p14 = pyp + pxnn;
+                p20 = pyc + pxpp;
+                p21 = pyc + pxp;
+                p22 = pyc + pxc;
+                p23 = pyc + pxn;
+                p24 = pyc + pxnn;
+                p30 = pyn + pxpp;
+                p31 = pyn + pxp;
+                p32 = pyn + pxc;
+                p33 = pyn + pxn;
+                p34 = pyn + pxnn;
                 p40 = pynn + pxpp;
                 p41 = pynn + pxp;
                 p42 = pynn + pxc;
                 p43 = pynn + pxn;
                 p44 = pynn + pxnn;
 
-                r   = inData[p00] * k00 + inData[p01] * k01 + inData[p02] * k02 + inData[p03] * k04 + inData[p02] * k04
-                    + inData[p10] * k10 + inData[p11] * k11 + inData[p12] * k12 + inData[p13] * k14 + inData[p12] * k14
-                    + inData[p20] * k20 + inData[p21] * k21 + inData[p22] * k22 + inData[p23] * k24 + inData[p22] * k24
-                    + inData[p30] * k30 + inData[p31] * k31 + inData[p32] * k32 + inData[p33] * k34 + inData[p32] * k34
-                    + inData[p40] * k40 + inData[p41] * k41 + inData[p42] * k42 + inData[p43] * k44 + inData[p42] * k44;
+                r = inData[p00] * k00 + inData[p01] * k01 + inData[p02] * k02 + inData[p03] * k04 + inData[p02] * k04 +
+                    inData[p10] * k10 + inData[p11] * k11 + inData[p12] * k12 + inData[p13] * k14 + inData[p12] * k14 +
+                    inData[p20] * k20 + inData[p21] * k21 + inData[p22] * k22 + inData[p23] * k24 + inData[p22] * k24 +
+                    inData[p30] * k30 + inData[p31] * k31 + inData[p32] * k32 + inData[p33] * k34 + inData[p32] * k34 +
+                    inData[p40] * k40 + inData[p41] * k41 + inData[p42] * k42 + inData[p43] * k44 + inData[p42] * k44;
 
-                g   = inData[p00 + 1] * k00 + inData[p01 + 1] * k01 + inData[p02 + 1] * k02 + inData[p03 + 1] * k04 + inData[p02 + 1] * k04
-                    + inData[p10 + 1] * k10 + inData[p11 + 1] * k11 + inData[p12 + 1] * k12 + inData[p13 + 1] * k14 + inData[p12 + 1] * k14
-                    + inData[p20 + 1] * k20 + inData[p21 + 1] * k21 + inData[p22 + 1] * k22 + inData[p23 + 1] * k24 + inData[p22 + 1] * k24
-                    + inData[p30 + 1] * k30 + inData[p31 + 1] * k31 + inData[p32 + 1] * k32 + inData[p33 + 1] * k34 + inData[p32 + 1] * k34
-                    + inData[p40 + 1] * k40 + inData[p41 + 1] * k41 + inData[p42 + 1] * k42 + inData[p43 + 1] * k44 + inData[p42 + 1] * k44;
+                g = inData[p00 + 1] * k00 + inData[p01 + 1] * k01 + inData[p02 + 1] * k02 + inData[p03 + 1] * k04 + inData[p02 + 1] * k04 +
+                    inData[p10 + 1] * k10 + inData[p11 + 1] * k11 + inData[p12 + 1] * k12 + inData[p13 + 1] * k14 + inData[p12 + 1] * k14 +
+                    inData[p20 + 1] * k20 + inData[p21 + 1] * k21 + inData[p22 + 1] * k22 + inData[p23 + 1] * k24 + inData[p22 + 1] * k24 +
+                    inData[p30 + 1] * k30 + inData[p31 + 1] * k31 + inData[p32 + 1] * k32 + inData[p33 + 1] * k34 + inData[p32 + 1] * k34 +
+                    inData[p40 + 1] * k40 + inData[p41 + 1] * k41 + inData[p42 + 1] * k42 + inData[p43 + 1] * k44 + inData[p42 + 1] * k44;
 
-                b   = inData[p00 + 2] * k00 + inData[p01 + 2] * k01 + inData[p02 + 2] * k02 + inData[p03 + 2] * k04 + inData[p02 + 2] * k04
-                    + inData[p10 + 2] * k10 + inData[p11 + 2] * k11 + inData[p12 + 2] * k12 + inData[p13 + 2] * k14 + inData[p12 + 2] * k14
-                    + inData[p20 + 2] * k20 + inData[p21 + 2] * k21 + inData[p22 + 2] * k22 + inData[p23 + 2] * k24 + inData[p22 + 2] * k24
-                    + inData[p30 + 2] * k30 + inData[p31 + 2] * k31 + inData[p32 + 2] * k32 + inData[p33 + 2] * k34 + inData[p32 + 2] * k34
-                    + inData[p40 + 2] * k40 + inData[p41 + 2] * k41 + inData[p42 + 2] * k42 + inData[p43 + 2] * k44 + inData[p42 + 2] * k44;
+                b = inData[p00 + 2] * k00 + inData[p01 + 2] * k01 + inData[p02 + 2] * k02 + inData[p03 + 2] * k04 + inData[p02 + 2] * k04 +
+                    inData[p10 + 2] * k10 + inData[p11 + 2] * k11 + inData[p12 + 2] * k12 + inData[p13 + 2] * k14 + inData[p12 + 2] * k14 +
+                    inData[p20 + 2] * k20 + inData[p21 + 2] * k21 + inData[p22 + 2] * k22 + inData[p23 + 2] * k24 + inData[p22 + 2] * k24 +
+                    inData[p30 + 2] * k30 + inData[p31 + 2] * k31 + inData[p32 + 2] * k32 + inData[p33 + 2] * k34 + inData[p32 + 2] * k34 +
+                    inData[p40 + 2] * k40 + inData[p41 + 2] * k41 + inData[p42 + 2] * k42 + inData[p43 + 2] * k44 + inData[p42 + 2] * k44;
 
                 if (alpha) {
-                    a   = inData[p00 + 3] * k00 + inData[p01 + 3] * k01 + inData[p02 + 3] * k02 + inData[p03 + 3] * k04 + inData[p02 + 3] * k04
-                        + inData[p10 + 3] * k10 + inData[p11 + 3] * k11 + inData[p12 + 3] * k12 + inData[p13 + 3] * k14 + inData[p12 + 3] * k14
-                        + inData[p20 + 3] * k20 + inData[p21 + 3] * k21 + inData[p22 + 3] * k22 + inData[p23 + 3] * k24 + inData[p22 + 3] * k24
-                        + inData[p30 + 3] * k30 + inData[p31 + 3] * k31 + inData[p32 + 3] * k32 + inData[p33 + 3] * k34 + inData[p32 + 3] * k34
-                        + inData[p40 + 3] * k40 + inData[p41 + 3] * k41 + inData[p42 + 3] * k42 + inData[p43 + 3] * k44 + inData[p42 + 3] * k44;
+                    a = inData[p00 + 3] * k00 + inData[p01 + 3] * k01 + inData[p02 + 3] * k02 + inData[p03 + 3] * k04 + inData[p02 + 3] * k04 +
+                        inData[p10 + 3] * k10 + inData[p11 + 3] * k11 + inData[p12 + 3] * k12 + inData[p13 + 3] * k14 + inData[p12 + 3] * k14 +
+                        inData[p20 + 3] * k20 + inData[p21 + 3] * k21 + inData[p22 + 3] * k22 + inData[p23 + 3] * k24 + inData[p22 + 3] * k24 +
+                        inData[p30 + 3] * k30 + inData[p31 + 3] * k31 + inData[p32 + 3] * k32 + inData[p33 + 3] * k34 + inData[p32 + 3] * k34 +
+                        inData[p40 + 3] * k40 + inData[p41 + 3] * k41 + inData[p42 + 3] * k42 + inData[p43 + 3] * k44 + inData[p42 + 3] * k44;
                 } else {
                     a = inData[idx + 3];
                 }
@@ -246,7 +272,9 @@
             tmpData = [],
             maxKernelSize = 13,
             k1, k2, weights,
-            kernels = [[1]];
+            kernels = [
+                [1]
+            ];
 
         kernelSize = clamp(kernelSize, 3, maxKernelSize);
         k1 = -kernelSize / 2 + (kernelSize % 2 ? 0.5 : 0);
@@ -345,7 +373,7 @@
 
     var process = {
 
-        invert : function (inData, outData, width, height) {
+        invert: function (inData, outData, width, height) {
             var i, n = width * height * 4;
 
             for (i = 0; i < n; i += 4) {
@@ -356,7 +384,7 @@
             }
         },
 
-        sepia : function (inData, outData, width, height) {
+        sepia: function (inData, outData, width, height) {
             var i, n = width * height * 4,
                 r, g, b;
 
@@ -371,7 +399,7 @@
             }
         },
 
-        solarize : function (inData, outData, width, height) {
+        solarize: function (inData, outData, width, height) {
             var i, n = width * height * 4,
                 r, g, b;
 
@@ -387,10 +415,10 @@
             }
         },
 
-        brightness : function (inData, outData, width, height, options) {
+        brightness: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {
-                brightness : 1,
-                contrast : 0
+                brightness: 1,
+                contrast: 0
             });
 
             var i, n = width * height * 4,
@@ -420,7 +448,7 @@
             }
         },
 
-        desaturate : function (inData, outData, width, height) {
+        desaturate: function (inData, outData, width, height) {
             var i, n = width * height * 4,
                 level;
 
@@ -433,7 +461,7 @@
             }
         },
 
-        lighten : function (inData, outData, width, height, options) {
+        lighten: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {amount: 0.25});
             var i, n = width * height * 4,
                 mul = 1 + clamp(options.amount, 0, 1);
@@ -446,7 +474,7 @@
             }
         },
 
-        noise : function (inData, outData, width, height, options) {
+        noise: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {amount: 0.5, strength: 0.5, mono: false});
             var i, n = width * height * 4,
                 rnd, r, g, b,
@@ -482,7 +510,7 @@
             }
         },
 
-        flipv : function (inData, outData, width, height) {
+        flipv: function (inData, outData, width, height) {
             var x, y, n = width * height * 4,
                 inPix, outPix;
 
@@ -499,7 +527,7 @@
             }
         },
 
-        fliph : function (inData, outData, width, height) {
+        fliph: function (inData, outData, width, height) {
             var x, y, n = width * height * 4,
                 inPix, outPix;
 
@@ -516,12 +544,12 @@
             }
         },
 
-        blur : function (inData, outData, width, height, options) {
+        blur: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {kernelSize: 10});
             gaussian(inData, outData, width, height, options.kernelSize);
         },
 
-        glow : function (inData, outData, width, height, options) {
+        glow: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {amount: 0.75, kernelSize: 5});
             var i, n = width * height * 4,
                 r, g, b,
@@ -531,12 +559,18 @@
             gaussian(inData, tmpData, width, height, options.kernelSize);
 
             for (i = 0; i < n; i += 4) {
-                r = inData[i]   + tmpData[i]   * amount;
+                r = inData[i] + tmpData[i] * amount;
                 g = inData[i + 1] + tmpData[i + 1] * amount;
                 b = inData[i + 2] + tmpData[i + 2] * amount;
-                if (r > 255) { r = 255; }
-                if (g > 255) { g = 255; }
-                if (b > 255) { b = 255; }
+                if (r > 255) {
+                    r = 255;
+                }
+                if (g > 255) {
+                    g = 255;
+                }
+                if (b > 255) {
+                    b = 255;
+                }
                 outData[i] = r;
                 outData[i + 1] = g;
                 outData[i + 2] = b;
@@ -544,69 +578,79 @@
             }
         },
 
-        convolve3x3 : function (inData, outData, width, height, options) {
+        convolve3x3: function (inData, outData, width, height, options) {
             convolve3x3(inData, outData, width, height, options.kernel);
         },
 
-        convolve5x5 : function (inData, outData, width, height, options) {
+        convolve5x5: function (inData, outData, width, height, options) {
             convolve3x3(inData, outData, width, height, options.kernel);
         },
 
         // A 3x3 high-pass filter
-        sharpen3x3 : function (inData, outData, width, height, options) {
+        sharpen3x3: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {strength: 1});
             var a = -clamp(options.strength, 0, 1);
             convolve3x3(inData, outData, width, height,
-                [   [a,         a, a],
+                [
+                    [a, a, a],
                     [a, 1 - a * 8, a],
-                    [a,         a, a]]);
+                    [a, a, a]
+                ]);
         },
 
         // A 5x5 high-pass filter
-        sharpen5x5 : function (inData, outData, width, height, options) {
+        sharpen5x5: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {strength: 1});
             var a = -clamp(options.strength, 0, 1);
             convolve5x5(inData, outData, width, height,
-                [   [a, a,          a, a, a],
-                    [a, a,          a, a, a],
+                [
+                    [a, a, a, a, a],
+                    [a, a, a, a, a],
                     [a, a, 1 - a * 24, a, a],
-                    [a, a,          a, a, a],
-                    [a, a,          a, a, a]]);
+                    [a, a, a, a, a],
+                    [a, a, a, a, a]
+                ]);
         },
 
         // A 3x3 low-pass mean filter
-        soften3x3 : function (inData, outData, width, height) {
+        soften3x3: function (inData, outData, width, height) {
             var c = 1 / 9;
             convolve3x3(inData, outData, width, height,
-                [   [c, c, c],
+                [
                     [c, c, c],
-                    [c, c, c]]);
+                    [c, c, c],
+                    [c, c, c]
+                ]);
         },
 
         // A 5x5 low-pass mean filter
-        soften5x5 : function (inData, outData, width, height) {
+        soften5x5: function (inData, outData, width, height) {
             var c = 1 / 25;
             convolve5x5(inData, outData, width, height,
-                [   [c, c, c, c, c],
+                [
                     [c, c, c, c, c],
                     [c, c, c, c, c],
                     [c, c, c, c, c],
-                    [c, c, c, c, c]]);
+                    [c, c, c, c, c],
+                    [c, c, c, c, c]
+                ]);
         },
 
         // A 3x3 Cross edge-detect
-        crossedges : function (inData, outData, width, height, options) {
+        crossedges: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {strength: 1});
             var a = clamp(options.strength, 0, 1) * 5;
             convolve3x3(inData, outData, width, height,
-                [   [ 0, -a, 0],
-                    [-a,  0, a],
-                    [ 0,  a, 0]],
+                [
+                    [ 0, -a, 0],
+                    [-a, 0, a],
+                    [ 0, a, 0]
+                ],
                 false, true);
         },
 
         // 3x3 directional emboss
-        emboss : function (inData, outData, width, height, options) {
+        emboss: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {amount: 1, angle: 0});
             var i, n = width * height * 4,
                 amount = options.amount,
@@ -626,12 +670,14 @@
                 tmpData = [];
 
             convolve3x3(inData, tmpData, width, height,
-                [   [a00, a01, a02],
-                    [a10,   0, a12],
-                    [a20, a21, a22]]);
+                [
+                    [a00, a01, a02],
+                    [a10, 0, a12],
+                    [a20, a21, a22]
+                ]);
 
             for (i = 0; i < n; i += 4) {
-                outData[i]   = 128 + tmpData[i];
+                outData[i] = 128 + tmpData[i];
                 outData[i + 1] = 128 + tmpData[i + 1];
                 outData[i + 2] = 128 + tmpData[i + 2];
                 outData[i + 3] = inData[i + 3];
@@ -640,21 +686,25 @@
 
 
         // A 3x3 Sobel edge detect (similar to Photoshop's)
-        findedges : function (inData, outData, width, height) {
+        findedges: function (inData, outData, width, height) {
             var i, n = width * height * 4,
                 gr1, gr2, gg1, gg2, gb1, gb2,
                 data1 = [],
                 data2 = [];
 
             convolve3x3(inData, data1, width, height,
-                [   [-1, 0, 1],
+                [
+                    [-1, 0, 1],
                     [-2, 0, 2],
-                    [-1, 0, 1]]);
+                    [-1, 0, 1]
+                ]);
 
             convolve3x3(inData, data2, width, height,
-                [   [-1, -2, -1],
-                    [ 0,  0,  0],
-                    [ 1,  2,  1]]);
+                [
+                    [-1, -2, -1],
+                    [ 0, 0, 0],
+                    [ 1, 2, 1]
+                ]);
 
             for (i = 0; i < n; i += 4) {
                 gr1 = data1[i];
@@ -664,12 +714,24 @@
                 gb1 = data1[i + 2];
                 gb2 = data2[i + 2];
 
-                if (gr1 < 0) { gr1 = -gr1; }
-                if (gr2 < 0) { gr2 = -gr2; }
-                if (gg1 < 0) { gg1 = -gg1; }
-                if (gg2 < 0) { gg2 = -gg2; }
-                if (gb1 < 0) { gb1 = -gb1; }
-                if (gb2 < 0) { gb2 = -gb2; }
+                if (gr1 < 0) {
+                    gr1 = -gr1;
+                }
+                if (gr2 < 0) {
+                    gr2 = -gr2;
+                }
+                if (gg1 < 0) {
+                    gg1 = -gg1;
+                }
+                if (gg2 < 0) {
+                    gg2 = -gg2;
+                }
+                if (gb1 < 0) {
+                    gb1 = -gb1;
+                }
+                if (gb2 < 0) {
+                    gb2 = -gb2;
+                }
 
                 outData[i] = 255 - (gr1 + gr2) * 0.8;
                 outData[i + 1] = 255 - (gg1 + gg2) * 0.8;
@@ -679,47 +741,55 @@
         },
 
         // A 3x3 edge enhance
-        edgeenhance3x3 : function (inData, outData, width, height) {
+        edgeenhance3x3: function (inData, outData, width, height) {
             var c = -1 / 9;
             convolve3x3(inData, outData, width, height,
-                [   [c,      c, c],
+                [
+                    [c, c, c],
                     [c, 17 / 9, c],
-                    [c,      c, c]]);
+                    [c, c, c]
+                ]);
         },
 
         // A 5x5 edge enhance
-        edgeenhance5x5 : function (inData, outData, width, height) {
+        edgeenhance5x5: function (inData, outData, width, height) {
             var c = -1 / 25;
             convolve5x5(inData, outData, width, height,
-                [   [c, c,       c, c, c],
-                    [c, c,       c, c, c],
+                [
+                    [c, c, c, c, c],
+                    [c, c, c, c, c],
                     [c, c, 49 / 25, c, c],
-                    [c, c,       c, c, c],
-                    [c, c,       c, c, c]]);
+                    [c, c, c, c, c],
+                    [c, c, c, c, c]
+                ]);
         },
 
         // A 3x3 Laplacian edge-detect
-        laplace3x3 : function (inData, outData, width, height) {
+        laplace3x3: function (inData, outData, width, height) {
             convolve3x3(inData, outData, width, height,
-                [   [-1, -1, -1],
-                    [-1,  8, -1],
-                    [-1, -1, -1]],
+                [
+                    [-1, -1, -1],
+                    [-1, 8, -1],
+                    [-1, -1, -1]
+                ],
                 false, true, true);
         },
 
         // A 5x5 Laplacian edge-detect
-        laplace5x5 : function (inData, outData, width, height) {
+        laplace5x5: function (inData, outData, width, height) {
             convolve5x5(inData, outData, width, height,
-                [   [-1, -1, -1, -1, -1],
+                [
+                    [-1, -1, -1, -1, -1],
                     [-1, -1, -1, -1, -1],
                     [-1, -1, 24, -1, -1],
                     [-1, -1, -1, -1, -1],
-                    [-1, -1, -1, -1, -1]],
+                    [-1, -1, -1, -1, -1]
+                ],
                 false, true, true);
         },
 
-        coloradjust : function (inData, outData, width, height, options) {
-            options = defaultOptions(options, {r : 0, g: 0, b: 0});
+        coloradjust: function (inData, outData, width, height, options) {
+            options = defaultOptions(options, {r: 0, g: 0, b: 0});
             var i, n = width * height * 4,
                 r, g, b,
                 ar = clamp(options.r, -1, 1) * 255,
@@ -730,12 +800,24 @@
                 r = inData[i] + ar;
                 g = inData[i + 1] + ag;
                 b = inData[i + 2] + ab;
-                if (r < 0) { r = 0; }
-                if (g < 0) { g = 0; }
-                if (b < 0) { b = 0; }
-                if (r > 255) { r = 255; }
-                if (g > 255) { g = 255; }
-                if (b > 255) { b = 255; }
+                if (r < 0) {
+                    r = 0;
+                }
+                if (g < 0) {
+                    g = 0;
+                }
+                if (b < 0) {
+                    b = 0;
+                }
+                if (r > 255) {
+                    r = 255;
+                }
+                if (g > 255) {
+                    g = 255;
+                }
+                if (b > 255) {
+                    b = 255;
+                }
                 outData[i] = r;
                 outData[i + 1] = g;
                 outData[i + 2] = b;
@@ -743,7 +825,7 @@
             }
         },
 
-        colorfilter : function (inData, outData, width, height, options) {
+        colorfilter: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {luminosity: false, r: 1, g: 0.5, b: 0});
             var i, n = width * height * 4,
                 r, g, b,
@@ -766,10 +848,18 @@
 
                 if (luminosity) {
                     min = max = r;
-                    if (g > max) { max = g; }
-                    if (b > max) { max = b; }
-                    if (g < min) { min = g; }
-                    if (b < min) { min = b; }
+                    if (g > max) {
+                        max = g;
+                    }
+                    if (b > max) {
+                        max = b;
+                    }
+                    if (g < min) {
+                        min = g;
+                    }
+                    if (b < min) {
+                        min = b;
+                    }
                     chroma = (max - min);
 
                     if (r === max) {
@@ -812,7 +902,7 @@
             }
         },
 
-        hsl : function (inData, outData, width, height, options) {
+        hsl: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {hue: 0.5, saturation: 0.3, lightness: 0.1});
             var i, n = width * height * 4,
                 r, g, b,
@@ -837,22 +927,34 @@
                     // It's not so pretty, but it's been optimized to get somewhat decent performance.
                     // The transforms were originally adapted from the ones found in Graphics Gems, but have been heavily modified.
                     vs = r;
-                    if (g > vs) { vs = g; }
-                    if (b > vs) { vs = b; }
+                    if (g > vs) {
+                        vs = g;
+                    }
+                    if (b > vs) {
+                        vs = b;
+                    }
                     ms = r;
-                    if (g < ms) { ms = g; }
-                    if (b < ms) { ms = b; }
+                    if (g < ms) {
+                        ms = g;
+                    }
+                    if (b < ms) {
+                        ms = b;
+                    }
                     vm = vs - ms;
                     l = (ms + vs) / 510;
 
                     if (l > 0 && vm > 0) {
                         if (l <= 0.5) {
                             s = vm / (vs + ms) * satMul;
-                            if (s > 1) { s = 1; }
+                            if (s > 1) {
+                                s = 1;
+                            }
                             v = (l * (1 + s));
                         } else {
                             s = vm / (510 - vs - ms) * satMul;
-                            if (s > 1) { s = 1; }
+                            if (s > 1) {
+                                s = 1;
+                            }
                             v = (l + s - l * s);
                         }
                         if (r === vs) {
@@ -874,8 +976,12 @@
                                 h = 5 - ((vs - r) / vm) + hue;
                             }
                         }
-                        if (h < 0) { h += 6; }
-                        if (h >= 6) { h -= 6; }
+                        if (h < 0) {
+                            h += 6;
+                        }
+                        if (h >= 6) {
+                            h -= 6;
+                        }
                         m = (l + l - v);
                         sextant = h >> 0;
                         vmh = (v - m) * (h - sextant);
@@ -915,12 +1021,24 @@
                 g = g * lightMul + lightAdd;
                 b = b * lightMul + lightAdd;
 
-                if (r < 0) { r = 0; }
-                if (g < 0) { g = 0; }
-                if (b < 0) { b = 0; }
-                if (r > 255) { r = 255; }
-                if (g > 255) { g = 255; }
-                if (b > 255) { b = 255; }
+                if (r < 0) {
+                    r = 0;
+                }
+                if (g < 0) {
+                    g = 0;
+                }
+                if (b < 0) {
+                    b = 0;
+                }
+                if (r > 255) {
+                    r = 255;
+                }
+                if (g > 255) {
+                    g = 255;
+                }
+                if (b > 255) {
+                    b = 255;
+                }
 
                 outData[i] = r;
                 outData[i + 1] = g;
@@ -929,7 +1047,7 @@
             }
         },
 
-        posterize : function (inData, outData, width, height, options) {
+        posterize: function (inData, outData, width, height, options) {
             options = defaultOptions(options, {levels: 5});
             var i, n = width * height * 4,
                 r, g, b,
@@ -945,7 +1063,7 @@
             }
         },
 
-        removenoise : function (inData, outData, width, height) {
+        removenoise: function (inData, outData, width, height) {
             var x, y, n = width * height * 4,
                 r, g, b, c, idx,
                 pyc, pyp, pyn,
@@ -957,8 +1075,12 @@
                 pyp = pyc - width * 4;
                 pyn = pyc + width * 4;
 
-                if (y < 1) { pyp = pyc; }
-                if (y >= width - 1) { pyn = pyc; }
+                if (y < 1) {
+                    pyp = pyc;
+                }
+                if (y >= width - 1) {
+                    pyn = pyc;
+                }
 
                 for (x = 0; x < width; x += 1) {
                     idx = (y * width + x) * 4;
@@ -967,46 +1089,86 @@
                     pxp = pxc - 4;
                     pxn = pxc + 4;
 
-                    if (x < 1) { pxp = pxc; }
-                    if (x >= width - 1) { pxn = pxc; }
+                    if (x < 1) {
+                        pxp = pxc;
+                    }
+                    if (x >= width - 1) {
+                        pxn = pxc;
+                    }
 
                     minR = maxR = inData[pyc + pxp];
                     c = inData[pyc + pxn];
-                    if (c < minR) { minR = c; }
-                    if (c > maxR) { maxR = c; }
+                    if (c < minR) {
+                        minR = c;
+                    }
+                    if (c > maxR) {
+                        maxR = c;
+                    }
                     c = inData[pyp + pxc];
-                    if (c < minR) { minR = c; }
-                    if (c > maxR) { maxR = c; }
+                    if (c < minR) {
+                        minR = c;
+                    }
+                    if (c > maxR) {
+                        maxR = c;
+                    }
                     c = inData[pyn + pxc];
-                    if (c < minR) { minR = c; }
-                    if (c > maxR) { maxR = c; }
+                    if (c < minR) {
+                        minR = c;
+                    }
+                    if (c > maxR) {
+                        maxR = c;
+                    }
 
                     minG = inData[pyc + pxp + 1];
                     c = inData[pyc + pxn + 1];
-                    if (c < minG) { minG = c; }
+                    if (c < minG) {
+                        minG = c;
+                    }
                     c = inData[pyp + pxc + 1];
-                    if (c < minG) { minG = c; }
+                    if (c < minG) {
+                        minG = c;
+                    }
                     c = inData[pyn + pxc + 1];
-                    if (c < minG) { minG = c; }
+                    if (c < minG) {
+                        minG = c;
+                    }
 
                     minB = inData[pyc + pxp + 2];
                     c = inData[pyc + pxn + 2];
-                    if (c < minB) { minB = c; }
+                    if (c < minB) {
+                        minB = c;
+                    }
                     c = inData[pyp + pxc + 2];
-                    if (c < minB) { minB = c; }
+                    if (c < minB) {
+                        minB = c;
+                    }
                     c = inData[pyn + pxc + 2];
-                    if (c < minB) { minB = c; }
+                    if (c < minB) {
+                        minB = c;
+                    }
 
                     r = inData[idx];
                     g = inData[idx + 1];
                     b = inData[idx + 2];
 
-                    if (r < minR) { r = minR; }
-                    if (r > maxR) { r = maxR; }
-                    if (g < minG) { g = minG; }
-                    if (g > maxG) { g = maxG; }
-                    if (b < minB) { b = minB; }
-                    if (b > maxB) { b = maxB; }
+                    if (r < minR) {
+                        r = minR;
+                    }
+                    if (r > maxR) {
+                        r = maxR;
+                    }
+                    if (g < minG) {
+                        g = minG;
+                    }
+                    if (g > maxG) {
+                        g = maxG;
+                    }
+                    if (b < minB) {
+                        b = minB;
+                    }
+                    if (b > maxB) {
+                        b = maxB;
+                    }
 
                     outData[idx] = r;
                     outData[idx + 1] = g;
@@ -1016,7 +1178,7 @@
             }
         },
 
-        luminancebw : function (inData, outData, width, height) {
+        luminancebw: function (inData, outData, width, height) {
             var i, n = width * height * 4,
                 lum;
 
@@ -1029,7 +1191,7 @@
             }
         },
 
-        mask : function (inData, outData, width, height, options) {
+        mask: function (inData, outData, width, height, options) {
             var i, n = width * height * 4,
                 data = options.data;
 
@@ -1046,16 +1208,6 @@
 
     // MODULE SUPPORT ///////////////////////////////////////////////////////
 
-    if (typeof module !== 'undefined') {
-        module.exports = process;
-    } else if (typeof define !== 'undefined') {
-        define('process', ['underscore'], function () {
-            return process;
-        });
-    } else if (typeof self !== 'undefined') {
-        self.process = process;
-    } else {
-        window.process = process;
-    }
+    module.exports = process;
 
 }());
