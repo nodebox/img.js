@@ -8,7 +8,7 @@
         "url": "https://github.com/stebanos/img.js.git"
     },
     "dependencies": {
-        "async": "~0.2.9"
+        "async": "~0.2.10"
     },
     "main": "img.js"
 }
