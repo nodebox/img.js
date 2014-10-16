@@ -21,7 +21,7 @@
     "browserify": "^5.12.1",
     "watchify": "^1.0.6"
   },
-  "main": "img.js",
+  "main": "./src/img.js",
   "scripts": {
     "ensure-build-dir": "mkdir -p build",
     "browserify": "npm run ensure-build-dir && browserify src/img.js --standalone img > build/img.js",
