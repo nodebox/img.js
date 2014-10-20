@@ -491,6 +491,12 @@ ImageCanvas.prototype.render = function (callback) {
     CanvasRenderer.render(this, callback);
 };
 
+// Renders the canvas on another canvas.
+ImageCanvas.prototype.draw = function (ctx) {
+    this.render(function (c) {
+        ctx.drawImage(c, 0, 0, c.width, c.height);
+    });
+};
 
 // RENDERING.
 
