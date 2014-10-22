@@ -394,6 +394,9 @@ Layer.prototype.clone = function () {
     for (var i = 0; i < this.filters.length; i += 1) {
         d.filters.push(cloneFilter(this.filters[i]));
     }
+
+    d.__proto__ = this.__proto__;
+
     return d;
 };
 
