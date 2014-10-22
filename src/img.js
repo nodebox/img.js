@@ -340,6 +340,63 @@ Layer = function (data, type) {
     this.filters = [];
 };
 
+// Copies the layer object.
+Layer.prototype.clone = function () {
+    function cloneFilter(filter) {
+        var key, value;
+        var f = {
+            name: filter.name,
+            options: {}
+        };
+        var optionsKeys = Object.keys(filter.options);
+        for (var i = 0; i < optionsKeys.length; i += 1) {
+            key = optionsKeys[i];
+            value = filter.options[key];
+            if (Array.isArray(value)) {
+                f.options[key] = value.slice(0);
+            } else {
+                f.options[key] = value;
+            }
+        }
+        return f;
+    }
+
+    var d = {
+        data: this.data,
+        type: this.type,
+        width: this.width,
+        height: this.height,
+        opacity: this.opacity,
+        blendmode: this.blendmode,
+        tx: this.tx,
+        ty: this.ty,
+        sx: this.sx,
+        sy: this.sy,
+        rot: this.rot,
+        flip_h: this.flip_h,
+        flip_v: this.flip_v,
+        mask: this.mask.clone(),
+        filters: []
+    };
+
+    if (this.type === TYPE_IMAGE_CANVAS) {
+        d.data = this.data.clone();
+    } else if (this.type === TYPE_GRADIENT) {
+        d.data = {
+            startColor: this.data.startColor,
+            endColor: this.data.endColor,
+            type: this.data.type,
+            rotation: this.data.rotation,
+            spread: this.data.spread
+        };
+    }
+
+    for (var i = 0; i < this.filters.length; i += 1) {
+        d.filters.push(cloneFilter(this.filters[i]));
+    }
+    return d;
+};
+
 // Sets the opacity of the layer (requires a number in the range 0.0-1.0).
 Layer.prototype.setOpacity = function (opacity) {
     this.opacity = clamp(opacity, 0, 1);
@@ -448,6 +505,15 @@ ImageCanvas = function (width, height) {
     this.width = width;
     this.height = height;
     this.layers = [];
+};
+
+// Copies the ImageCanvas.
+ImageCanvas.prototype.clone = function () {
+    var c = new ImageCanvas(this.width, this.height);
+    for (var i = 0; i < this.layers.length; i += 1) {
+        c.layers.push(this.layers[i].clone());
+    }
+    return c;
 };
 
 // Creates a new layer from figuring out the given argument(s) and adds it to the canvas.
