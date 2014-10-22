@@ -316,6 +316,11 @@ Layer = function (data, type) {
     this.data = data;
     this.type = type;
 
+    if (type === TYPE_HTML_CANVAS || type === TYPE_IMAGE_CANVAS || type === TYPE_IMAGE) {
+        this.width = data.width;
+        this.height = data.height;
+    }
+
     // Compositing.
     this.opacity = 1.0;
     this.blendmode = 'source-over';
@@ -389,6 +394,15 @@ Layer.prototype.addFilter = function (filter, options) {
     });
 };
 
+// Renders the layer to a new canvas.
+Layer.prototype.draw = function (ctx) {
+    var width = this.width === undefined ? DEFAULT_WIDTH : this.width;
+    var height = this.height === undefined ? DEFAULT_HEIGHT : this.height;
+    var canvas = new ImageCanvas(width, height);
+    canvas.addLayer(this);
+    canvas.draw(ctx);
+};
+
 Layer.fromFile = function (filename) {
     return new Layer(filename, TYPE_PATH);
 };
@@ -453,6 +467,8 @@ ImageCanvas.prototype.addLayer = function (arg0) {
     if (arguments.length === 1) {
         if (typeof arg0 === 'string') {
             layer = new Layer(arg0, TYPE_PATH);
+        } else if (arg0 instanceof Layer) {
+            layer = arg0;
         } else if (arg0 instanceof HTMLCanvasElement) {
             layer = new Layer(arg0, TYPE_HTML_CANVAS);
         } else if (arg0 instanceof Image) {
