@@ -2,6 +2,7 @@
 
 var util = require('./util');
 var CanvasRenderer = require('./canvasrenderer');
+var AsyncRenderer = require('./asyncrenderer');
 
 var img, ImageCanvas, Layer;
 
@@ -515,7 +516,8 @@ ImageCanvas.prototype.addGradientLayer = function () {
 
 // Renders the canvas and passes the result (a html canvas) to the given callback function.
 ImageCanvas.prototype.render = function (callback) {
-    CanvasRenderer.render(this, callback);
+    var renderer = callback ? AsyncRenderer : CanvasRenderer;
+    return renderer.render(this, callback);
 };
 
 // Renders the canvas on another canvas.
@@ -531,4 +533,31 @@ img.ImageCanvas = ImageCanvas;
 
 // MODULE SUPPORT ///////////////////////////////////////////////////////
 
+var async = require('async');
+
+function loadImage(image, callback) {
+    var img = new Image();
+    img.onload = function () {
+        callback(null, [image, this]);
+    };
+    img.src = image;
+}
+
+function loadImages(images, callback) {
+    async.map(images,
+        loadImage, function (err, loadedImages) {
+            if (callback) {
+                var d = {};
+                for (var i = 0; i < loadedImages.length; i += 1) {
+                    var name = loadedImages[i][0];
+                    var image = loadedImages[i][1];
+                    d[name] = image;
+                }
+                callback(d);
+            }
+        });
+}
+img.loadImages = loadImages;
+
 module.exports = img;
+

@@ -6,21 +6,19 @@
     <script src="build/img.js"></script>
     <script>
         window.onload = function () {
-            var layer, mask,
-                iCanvas = new img.ImageCanvas(600, 450);
-
-            layer = iCanvas.addLayer('images/img1.jpg');
-            layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
-
-            layer = iCanvas.addLayer('images/img2.jpg');
-            layer.addFilter('coloradjust', {r: 0.30, g: 0.20, b: 0.35});
-            layer.opacity = 0.5;
-
-            mask = layer.mask.addLayer({startColor: 'white', endColor: 'black', type: 'radial', spread: 0.97});
-            mask.width = mask.height = 360;
-
-            iCanvas.render(function (canvas) {
-                document.body.appendChild(canvas);
+            var img1 = 'images/img1.jpg';
+            var img2 = 'images/img2.jpg';
+            img.loadImages([img1, img2], function (images) {
+                var layer;
+                var iCanvas = new img.ImageCanvas(600, 450);
+                layer = iCanvas.addLayer(images[img1]);
+                layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
+                layer = iCanvas.addLayer(images[img2]);
+                layer.addFilter('coloradjust', {r: 0.30, g: 0.20, b: 0.35});
+                layer.opacity = 0.5;
+                mask = layer.mask.addLayer({startColor: 'white', endColor: 'black', type: 'radial', spread: 0.97});
+                mask.width = mask.height = 360;
+                document.body.appendChild(iCanvas.render());
             });
         };
     </script>

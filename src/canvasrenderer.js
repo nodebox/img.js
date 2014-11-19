@@ -1,16 +1,11 @@
 'use strict';
 
-var async = require('async');
 var blend = require('./blend');
 var process = require('./process');
+var util = require('./util');
 
 // Dictionary of blend modes that the client browser does or does not support.
 var nativeBlendModes = blend.getNativeModes();
-
-// Utility function that passes its input (normally a html canvas) to the next function.
-function passThrough(canvas, callback) {
-    callback(null, canvas);
-}
 
 function createImageData(ctx, width, height) {
     if (ctx.createImageData) {
@@ -31,24 +26,19 @@ function createImageData(ctx, width, height) {
 var CanvasRenderer = {};
 
 // Renders a html canvas as an html Image. Currently unused.
-CanvasRenderer.toImage = function () {
-    return function (canvas, callback) {
-        var img = new Image();
-        img.width = canvas.width;
-        img.height = canvas.height;
-        img.src = canvas.toDataURL();
-        callback(null, img);
-    };
+CanvasRenderer.toImage = function (canvas) {
+    var img = new Image();
+    img.width = canvas.width;
+    img.height = canvas.height;
+    img.src = canvas.toDataURL();
+    return img;
 };
-
 
 // 'LOADING' OF LAYERS.
 
 // Returns a html canvas dependent on the type of the layer provided.
 CanvasRenderer.load = function (iCanvas, layer) {
-    if (layer.isPath()) {
-        return CanvasRenderer.loadFile(layer.data);
-    } else if (layer.isFill()) {
+    if (layer.isFill()) {
         return CanvasRenderer.generateColor(iCanvas, layer);
     } else if (layer.isGradient()) {
         return CanvasRenderer.generateGradient(iCanvas, layer);
@@ -61,197 +51,154 @@ CanvasRenderer.load = function (iCanvas, layer) {
     }
 };
 
-// Returns a html canvas from an image file location.
-CanvasRenderer.loadFile = function (src) {
-    return function (_, callback) {
-        var source = new Image(),
-            canvas = document.createElement('canvas'),
-            ctx = canvas.getContext('2d');
-
-        source.onload = function () {
-            canvas.width = source.width;
-            canvas.height = source.height;
-            ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
-            callback(null, canvas);
-        };
-        source.src = src;
-    };
-};
-
 // Passes a html canvas.
 CanvasRenderer.loadHtmlCanvas = function (canvas) {
-    return function (_, callback) {
-        callback(null, canvas);
-    };
+    return canvas;
 };
 
 // Returns a html canvas from rendering an ImageCanvas.
 CanvasRenderer.loadImageCanvas = function (iCanvas) {
-    return function (_, callback) {
-        iCanvas.render(function (canvas) {
-            callback(null, canvas);
-        });
-    };
+    return iCanvas.render();
 };
 
 // Returns a html canvas from rendering a stored Image file.
 CanvasRenderer.loadImage = function (img) {
-    return function (_, callback) {
-        var canvas = document.createElement('canvas'),
-            ctx = canvas.getContext('2d');
-
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        callback(null, canvas);
-    };
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas;
 };
 
 // Returns a html canvas with a solid fill color.
 CanvasRenderer.generateColor = function (iCanvas, layer) {
-    return function (_, callback) {
-        var width = layer.width !== undefined ? layer.width : iCanvas.width,
-            height = layer.height !== undefined ? layer.height : iCanvas.height,
-            canvas = document.createElement('canvas'),
-            ctx = canvas.getContext('2d');
+    var width = layer.width !== undefined ? layer.width : iCanvas.width,
+        height = layer.height !== undefined ? layer.height : iCanvas.height,
+        canvas = document.createElement('canvas'),
+        ctx = canvas.getContext('2d');
 
-        canvas.width = width;
-        canvas.height = height;
-        ctx.fillStyle = layer.data;
-        ctx.fillRect(0, 0, width, height);
-        callback(null, canvas);
-    };
+    canvas.width = width;
+    canvas.height = height;
+    ctx.fillStyle = layer.data;
+    ctx.fillRect(0, 0, width, height);
+    return canvas;
 };
 
 // Returns a html canvas with a gradient.
 CanvasRenderer.generateGradient = function (iCanvas, layer) {
-    return function (_, callback) {
-        var grd, x1, y1, x2, y2,
-            width = layer.width !== undefined ? layer.width : iCanvas.width,
-            height = layer.height !== undefined ? layer.height : iCanvas.height,
-            cx = width / 2,
-            cy = height / 2,
-            canvas = document.createElement('canvas'),
-            ctx = canvas.getContext('2d'),
-            data = layer.data,
-            type = data.type || 'linear',
-            rotateDegrees = data.rotation || 0;
+    var grd, x1, y1, x2, y2,
+        width = layer.width !== undefined ? layer.width : iCanvas.width,
+        height = layer.height !== undefined ? layer.height : iCanvas.height,
+        cx = width / 2,
+        cy = height / 2,
+        canvas = document.createElement('canvas'),
+        ctx = canvas.getContext('2d'),
+        data = layer.data,
+        type = data.type || 'linear',
+        rotateDegrees = data.rotation || 0;
 
-        if (type === 'radial') {
-            grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(width, height) / 2);
-        } else {
-            // Rotation code taken from html5-canvas-gradient-creator:
-            // Website: http://victorblog.com/html5-canvas-gradient-creator/
-            // Code: https://github.com/evictor/html5-canvas-gradient-creator/blob/master/js/src/directive/previewCanvas.coffee
-            if (rotateDegrees < 0) {
-                rotateDegrees += 360;
-            }
-            if ((0 <= rotateDegrees && rotateDegrees < 45)) {
-                x1 = 0;
-                y1 = height / 2 * (45 - rotateDegrees) / 45;
-                x2 = width;
-                y2 = height - y1;
-            } else if ((45 <= rotateDegrees && rotateDegrees < 135)) {
-                x1 = width * (rotateDegrees - 45) / (135 - 45);
-                y1 = 0;
-                x2 = width - x1;
-                y2 = height;
-            } else if ((135 <= rotateDegrees && rotateDegrees < 225)) {
-                x1 = width;
-                y1 = height * (rotateDegrees - 135) / (225 - 135);
-                x2 = 0;
-                y2 = height - y1;
-            } else if ((225 <= rotateDegrees && rotateDegrees < 315)) {
-                x1 = width * (1 - (rotateDegrees - 225) / (315 - 225));
-                y1 = height;
-                x2 = width - x1;
-                y2 = 0;
-            } else if (315 <= rotateDegrees) {
-                x1 = 0;
-                y1 = height - height / 2 * (rotateDegrees - 315) / (360 - 315);
-                x2 = width;
-                y2 = height - y1;
-            }
-            grd = ctx.createLinearGradient(x1, y1, x2, y2);
+    if (type === 'radial') {
+        grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(width, height) / 2);
+    } else {
+        // Rotation code taken from html5-canvas-gradient-creator:
+        // Website: http://victorblog.com/html5-canvas-gradient-creator/
+        // Code: https://github.com/evictor/html5-canvas-gradient-creator/blob/master/js/src/directive/previewCanvas.coffee
+        if (rotateDegrees < 0) {
+            rotateDegrees += 360;
         }
-        grd.addColorStop(data.spread || 0, data.startColor);
-        grd.addColorStop(1, data.endColor);
+        if ((0 <= rotateDegrees && rotateDegrees < 45)) {
+            x1 = 0;
+            y1 = height / 2 * (45 - rotateDegrees) / 45;
+            x2 = width;
+            y2 = height - y1;
+        } else if ((45 <= rotateDegrees && rotateDegrees < 135)) {
+            x1 = width * (rotateDegrees - 45) / (135 - 45);
+            y1 = 0;
+            x2 = width - x1;
+            y2 = height;
+        } else if ((135 <= rotateDegrees && rotateDegrees < 225)) {
+            x1 = width;
+            y1 = height * (rotateDegrees - 135) / (225 - 135);
+            x2 = 0;
+            y2 = height - y1;
+        } else if ((225 <= rotateDegrees && rotateDegrees < 315)) {
+            x1 = width * (1 - (rotateDegrees - 225) / (315 - 225));
+            y1 = height;
+            x2 = width - x1;
+            y2 = 0;
+        } else if (315 <= rotateDegrees) {
+            x1 = 0;
+            y1 = height - height / 2 * (rotateDegrees - 315) / (360 - 315);
+            x2 = width;
+            y2 = height - y1;
+        }
+        grd = ctx.createLinearGradient(x1, y1, x2, y2);
+    }
+    grd.addColorStop(data.spread || 0, data.startColor);
+    grd.addColorStop(1, data.endColor);
 
-        canvas.width = width;
-        canvas.height = height;
-        ctx.fillStyle = grd;
-        ctx.fillRect(0, 0, width, height);
-        callback(null, canvas);
-    };
+    canvas.width = width;
+    canvas.height = height;
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, width, height);
+    return canvas;
 };
-
 
 // PROCESSING OF LAYERS.
 
 // Performs a number of filtering operations on an html image.
-// This method executes on the main thread if web workers aren't available on the current system.
-CanvasRenderer.processImage = function (filters) {
+CanvasRenderer.processImage = function (canvas, filters) {
     if (filters.length === 0) {
-        return passThrough;
+        return canvas;
+    }
+    var i, filter, tmpData,
+        ctx = canvas.getContext('2d'),
+        width = canvas.width,
+        height = canvas.height,
+        inData = ctx.getImageData(0, 0, width, height),
+        outData = createImageData(ctx, width, height);
+
+    for (i = 0; i < filters.length; i += 1) {
+        if (i > 0) {
+            tmpData = inData;
+            inData = outData;
+            outData = tmpData;
+        }
+        filter = filters[i];
+        process[filter.name](inData.data, outData.data, width, height, filter.options);
     }
 
-    return function (canvas, callback) {
-        var i, filter, tmpData,
-            ctx = canvas.getContext('2d'),
-            width = canvas.width,
-            height = canvas.height,
-            inData = ctx.getImageData(0, 0, width, height),
-            outData = createImageData(ctx, width, height);
-
-        for (i = 0; i < filters.length; i += 1) {
-            if (i > 0) {
-                tmpData = inData;
-                inData = outData;
-                outData = tmpData;
-            }
-            filter = filters[i];
-            process[filter.name](inData.data, outData.data, width, height, filter.options);
-        }
-
-        ctx.putImageData(outData, 0, 0);
-        callback(null, canvas);
-    };
+    ctx.putImageData(outData, 0, 0);
+    return canvas;
 };
 
 // Renders the layer mask and applies it to the layer that it is supposed to mask.
-CanvasRenderer.processMask = function (mask) {
+CanvasRenderer.processMask = function (canvas, mask) {
     if (mask.layers.length === 0) {
-        return passThrough;
+        return canvas;
     }
-    return function (canvas, callback) {
-        mask.width = canvas.width;
-        mask.height = canvas.height;
-
-        // First, make a black and white version of the masking canvas and pass
-        // the result to the masking operation.
-        CanvasRenderer.renderBW(mask, function (c) {
-            var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
-                maskFilter = {name: 'mask', options: {data: data, x: 0, y: 0, width: c.width, height: c.height} },
-                fn = CanvasRenderer.processImage([maskFilter]);
-            fn(canvas, callback);
-        });
-    };
+    mask.width = canvas.width;
+    mask.height = canvas.height;
+    // First, make a black and white version of the masking canvas and pass
+    // the result to the masking operation.
+    var c = CanvasRenderer.renderBW(mask);
+    var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    var maskFilter = {name: 'mask', options: {data: data, x: 0, y: 0, width: c.width, height: c.height} };
+    return CanvasRenderer.processImage(canvas, [maskFilter]);
 };
 
 // Processes a single layer. First the layer image is loaded, then a mask (if applicable) is applied to it,
 // and finally the filters (if any) are applied to it.
-function processLayers(iCanvas) {
-    return function (layer, callback) {
-        async.compose(
-            CanvasRenderer.processImage(layer.filters),
-            CanvasRenderer.processMask(layer.mask),
-            CanvasRenderer.load(iCanvas, layer)
-        )(null, callback);
-    };
-}
+CanvasRenderer.processLayer = function (iCanvas, layer) {
+    var layerImage = CanvasRenderer.load(iCanvas, layer);
+    var maskedImage = CanvasRenderer.processMask(layerImage, layer.mask);
+    return CanvasRenderer.processImage(maskedImage, layer.filters);
+};
 
 
 // LAYER TRANFORMATIONS.
+
 
 // Transforms the 2d context that acts upon this layer's image. Utility function. -> Rename this?
 function transformLayer(ctx, iCanvas, layer) {
@@ -364,7 +311,7 @@ function getTransformedLayerData(iCanvas, layer, rect) {
 // Blends the subsequent layer images with the base layer and returns a single image.
 // This method is used when web workers aren't available for use on this system.
 CanvasRenderer.mergeManualBlend = function (iCanvas, layerData) {
-    return function (canvas, callback) {
+    return function (canvas) {
         var i, layer, blendData, tmpData, layerOptions, rect,
             ctx = canvas.getContext('2d'),
             width = iCanvas.width,
@@ -389,7 +336,7 @@ CanvasRenderer.mergeManualBlend = function (iCanvas, layerData) {
             }
         }
         ctx.putImageData(outData, 0, 0);
-        callback(null, canvas);
+        return canvas;
     };
 };
 
@@ -415,7 +362,7 @@ CanvasRenderer.singleLayerWithOpacity = function (iCanvas, layer) {
 // Blends the subsequent layer images with the base layer and returns the resulting image.
 // This method is used when the system supports the requested blending mode(s).
 CanvasRenderer.mergeNativeBlend = function (iCanvas, layerData) {
-    return function (canvas, callback) {
+    return function (canvas) {
         var i, layer,
             ctx = canvas.getContext('2d');
         for (i = 0; i < layerData.length; i += 1) {
@@ -431,23 +378,19 @@ CanvasRenderer.mergeNativeBlend = function (iCanvas, layerData) {
             ctx.drawImage(layer.img, layer.x, layer.y);
             ctx.restore();
         }
-        callback(null, canvas);
+        return canvas;
     };
 };
 
-// Merges the different canvas layers together in a single image and returns this as a html canvas.
-CanvasRenderer.merge = function (iCanvas, layerData, callback) {
+CanvasRenderer.createRenderPipe = function (Renderer, iCanvas, layerData) {
     var i, mode, useNative, currentList,
-        layer = layerData[0],
-        canvas = CanvasRenderer.singleLayerWithOpacity(iCanvas, layer),
-        renderPipe = [function (_, cb) {
-            cb(null, canvas);
-        }];
+        layer,
+        renderPipe = [];
 
     function pushList() {
         if (useNative !== undefined) {
-            var fn = useNative ? CanvasRenderer.mergeNativeBlend : CanvasRenderer.mergeManualBlend;
-            renderPipe.unshift(fn(iCanvas, currentList));
+            var fn = useNative ? Renderer.mergeNativeBlend : Renderer.mergeManualBlend;
+            renderPipe.push(fn(iCanvas, currentList));
         }
     }
 
@@ -465,28 +408,33 @@ CanvasRenderer.merge = function (iCanvas, layerData, callback) {
             pushList();
         }
     }
-
-    async.compose.apply(null, renderPipe)(null, function () {
-        callback(canvas);
-    });
+    return renderPipe;
 };
 
-CanvasRenderer.composite = function (iCanvas, layerData, callback) {
+// Merges the different canvas layers together in a single image and returns this as a html canvas.
+CanvasRenderer.merge = function (iCanvas, layerData) {
+    var renderPipe = CanvasRenderer.createRenderPipe(CanvasRenderer, iCanvas, layerData);
+    var canvas = CanvasRenderer.singleLayerWithOpacity(iCanvas, layerData[0]);
+    for (var i = 0; i < renderPipe.length; i += 1) {
+        canvas = renderPipe[i](canvas);
+    }
+    return canvas;
+};
+
+CanvasRenderer.composite = function (iCanvas, layerData) {
     if (!layerData || layerData.length === 0) {
-        callback(null);
-        return;
+        return null;
     }
     if (layerData.length === 1) {
-        callback(CanvasRenderer.singleLayerWithOpacity(iCanvas, layerData[0]));
-        return;
+        return CanvasRenderer.singleLayerWithOpacity(iCanvas, layerData[0]);
     }
 
-    CanvasRenderer.merge(iCanvas, layerData, callback);
+    return CanvasRenderer.merge(iCanvas, layerData);
 };
 
 // Returns an object with additional layer information as well as the input images
 // to be passed to the different processing functions.
-function getLayerData(iCanvas, layerImages) {
+CanvasRenderer.getLayerData = function (iCanvas, layerImages) {
     var i, d, x, y, layer, layerImg, layerData = [];
     for (i = 0; i < layerImages.length; i += 1) {
         layer = iCanvas.layers[i];
@@ -504,28 +452,23 @@ function getLayerData(iCanvas, layerImages) {
         layerData.push(d);
     }
     return layerData;
-}
+};
 
 // Renders the image canvas. Top level.
-CanvasRenderer.render = function (iCanvas, callback) {
-    async.map(iCanvas.layers,
-        processLayers(iCanvas), function (err, layerImages) {
-            if (callback) {
-                CanvasRenderer.composite(iCanvas, getLayerData(iCanvas, layerImages), callback);
-            }
-        });
+CanvasRenderer.render = function (iCanvas) {
+    var layerImages = [];
+    for (var i = 0; i < iCanvas.layers.length; i += 1) {
+        layerImages.push(CanvasRenderer.processLayer(iCanvas, iCanvas.layers[i]));
+    }
+    return CanvasRenderer.composite(iCanvas, CanvasRenderer.getLayerData(iCanvas, layerImages));
 };
 
 // Renders the image canvas and turns it into a black and white image. Useful for rendering a layer mask.
-CanvasRenderer.renderBW = function (iCanvas, callback) {
-    CanvasRenderer.render(iCanvas, function (canvas) {
-        var data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data,
-            bwFilter = {name: 'luminancebw'},
-            fn = CanvasRenderer.processImage([bwFilter]);
-        fn(canvas, function (err, c) {
-            callback(c);
-        });
-    });
+CanvasRenderer.renderBW = function (iCanvas) {
+    var canvas = CanvasRenderer.render(iCanvas);
+    var data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    var bwFilter = {name: 'luminancebw'};
+    return CanvasRenderer.processImage(canvas, [bwFilter]);
 };
 
 module.exports = CanvasRenderer;
