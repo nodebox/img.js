@@ -521,10 +521,15 @@ ImageCanvas.prototype.render = function (callback) {
 };
 
 // Renders the canvas on another canvas.
-ImageCanvas.prototype.draw = function (ctx) {
-    this.render(function (c) {
-        ctx.drawImage(c, 0, 0, c.width, c.height);
-    });
+ImageCanvas.prototype.draw = function (ctx, callback) {
+    if (callback) {
+        this.render(function (canvas) {
+            ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+        });
+    } else {
+        var canvas = this.render();
+        ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+    }
 };
 
 img = {};
@@ -560,4 +565,3 @@ function loadImages(images, callback) {
 img.loadImages = loadImages;
 
 module.exports = img;
-
