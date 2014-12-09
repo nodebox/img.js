@@ -245,11 +245,7 @@ Layer = function (data, type) {
     this.blendmode = 'source-over';
 
     // Transformations.
-    this.tx = 0;
-    this.ty = 0;
-    this.sx = 1.0;
-    this.sy = 1.0;
-    this.rot = 0;
+    this.transform = util.transform();
     this.flip_h = false;
     this.flip_v = false;
 
@@ -288,11 +284,7 @@ Layer.prototype.clone = function () {
         height: this.height,
         opacity: this.opacity,
         blendmode: this.blendmode,
-        tx: this.tx,
-        ty: this.ty,
-        sx: this.sx,
-        sy: this.sy,
-        rot: this.rot,
+        transform: this.transform,
         flip_h: this.flip_h,
         flip_v: this.flip_v,
         mask: this.mask.clone(),
@@ -327,26 +319,30 @@ Layer.prototype.setOpacity = function (opacity) {
 
 // Within an image canvas, a layer is by default positioned in the center.
 // Translating moves the layer away from this center.
-// Each successive call to the translate function performs an additional translation, it doesn't replace the previous one.
+// Each successive call to the translate function performs an additional translation on top of the previous one.
 Layer.prototype.translate = function (tx, ty) {
-    this.tx += tx;
-    this.ty += ty === undefined ? 0 : ty;
+    ty = ty === undefined ? 0 : ty;
+    var t = util.transform();
+    t = t.translate(tx, ty);
+    this.transform = this.transform.prepend(t);
 };
 
-// A layer is scaled around its own center.
 // Scaling happens relatively in a 0.0-1.0 based range where 1.0 stands for 100%.
-// Each successive call to the scale function performs an additional scaling operation, it doesn't replace the previous one.
+// Each successive call to the scale function performs an additional scaling operation on top of the previous one.
 // If only one parameter is supplied, the layer is scaled proportionally.
 Layer.prototype.scale = function (sx, sy) {
-    this.sx *= sx;
-    this.sy *= sy === undefined ? sx : sy;
+    sy = sy === undefined ? sx : sy;
+    var t = util.transform();
+    t = t.scale(sx, sy);
+    this.transform = this.transform.prepend(t);
 };
 
-// A layer is rotated around its own center.
 // The supplied parameter should be in degrees (not radians).
-// Each successive call to the rotation function performs an additional rotation, it doesn't replace the previous one.
+// Each successive call to the rotation function performs an additional rotation on top of the previous one.
 Layer.prototype.rotate = function (rot) {
-    this.rot += rot;
+    var t = util.transform();
+    t = t.rotate(rot);
+    this.transform = this.transform.prepend(t);
 };
 
 // Flips the layer horizontally.

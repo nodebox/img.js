@@ -202,27 +202,14 @@ CanvasRenderer.processLayer = function (iCanvas, layer) {
 
 // Transforms the 2d context that acts upon this layer's image. Utility function. -> Rename this?
 function transformLayer(ctx, iCanvas, layer) {
-    var translate = layer.tx !== 0 || layer.ty !== 0,
-        scale = layer.sx !== 1 || layer.sy !== 1,
-        rotate = layer.rot !== 0,
-        flip = layer.flip_h || layer.flip_v;
+    var m = layer.transform.matrix();
 
-    if (translate) {
-        ctx.translate(layer.tx, layer.ty);
+    ctx.translate(iCanvas.width / 2, iCanvas.height / 2);
+    ctx.transform(m[0], m[1], m[3], m[4], m[6], m[7]);
+    if (layer.flip_h || layer.flip_v) {
+        ctx.scale(layer.flip_h ? -1 : 1, layer.flip_v ? -1 : 1);
     }
-    if (scale || rotate || flip) {
-        ctx.translate(iCanvas.width / 2, iCanvas.height / 2);
-        if (rotate) {
-            ctx.rotate(util.radians(layer.rot));
-        }
-        if (scale) {
-            ctx.scale(layer.sx, layer.sy);
-        }
-        if (flip) {
-            ctx.scale(layer.flip_h ? -1 : 1, layer.flip_v ? -1 : 1);
-        }
-        ctx.translate(-iCanvas.width / 2, -iCanvas.height / 2);
-    }
+    ctx.translate(-layer.img.width / 2, -layer.img.height / 2);
 }
 
 // Transforms the bounds of a layer (the bounding rectangle) and returns the bounding rectangle
@@ -238,12 +225,9 @@ function transformRect(iCanvas, layer) {
         points = [p1, p2, p3, p4];
 
     t = util.transform();
-    t.translate((iCanvas.width - width) / 2, (iCanvas.height - height) / 2);
-    t.translate(layer.tx, layer.ty);
-    t.translate(width / 2, height / 2);
-    t.rotate(layer.rot);
-    t.scale(layer.sx, layer.sy);
-    t.translate(-width / 2, -height / 2);
+    t = t.translate(iCanvas.width / 2, iCanvas.height / 2);
+    t = t.append(layer.transform);
+    t = t.translate(-layer.img.width / 2, -layer.img.height / 2);
 
     for (i = 0; i < 4; i += 1) {
         pt = t.transformPoint(points[i]);
@@ -301,7 +285,7 @@ function getTransformedLayerData(iCanvas, layer, rect) {
     canvas.height = rect.height;
     ctx.translate(-rect.x, -rect.y);
     transformLayer(ctx, iCanvas, layer);
-    ctx.drawImage(layer.img, layer.x, layer.y);
+    ctx.drawImage(layer.img, 0, 0);
     return ctx.getImageData(0, 0, rect.width, rect.height);
 }
 
@@ -354,7 +338,7 @@ CanvasRenderer.singleLayerWithOpacity = function (iCanvas, layer) {
     if (layer.opacity !== 1) {
         ctx.globalAlpha = layer.opacity;
     }
-    ctx.drawImage(layer.img, layer.x, layer.y);
+    ctx.drawImage(layer.img, 0, 0);
     ctx.restore();
     return canvas;
 };
@@ -375,7 +359,7 @@ CanvasRenderer.mergeNativeBlend = function (iCanvas, layerData) {
             if (layer.blendmode !== 'source-over') {
                 ctx.globalCompositeOperation = layer.blendmode;
             }
-            ctx.drawImage(layer.img, layer.x, layer.y);
+            ctx.drawImage(layer.img, 0, 0);
             ctx.restore();
         }
         return canvas;
@@ -439,14 +423,10 @@ CanvasRenderer.getLayerData = function (iCanvas, layerImages) {
     for (i = 0; i < layerImages.length; i += 1) {
         layer = iCanvas.layers[i];
         layerImg = layerImages[i];
-        x = (iCanvas.width - layerImg.width) / 2;
-        y = (iCanvas.height - layerImg.height) / 2;
-        d = { img: layerImg, x: x, y: y,
+        d = { img: layerImg, /*x: x, y: y,*/
             opacity: layer.opacity,
             blendmode: layer.blendmode,
-            tx: layer.tx, ty: layer.ty,
-            sx: layer.sx, sy: layer.sy,
-            rot: layer.rot,
+            transform: layer.transform,
             flip_h: layer.flip_h, flip_v: layer.flip_v
         };
         layerData.push(d);

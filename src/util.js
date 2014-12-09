@@ -15,12 +15,18 @@ function clamp(val, min, max) {
 }
 
 // Basic affine transform functionality limited to the following operations: scale, translate and rotate.
-function transform() {
+function transform(m) {
     // Identity matrix.
-    var m = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+    if (m === undefined) {
+        m = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+    } else {
+        m = m.slice();
+    }
 
     // Performs the 3x3 matrix multiplication of the current matrix with the input matrix a.
-    function _mmult(a) {
+    function _mmult(a, m) {
+        m = m.slice();
+
         var m0 = m[0],
             m1 = m[1],
             m2 = m[2],
@@ -37,24 +43,42 @@ function transform() {
         m[4] = a[3] * m1 + a[4] * m4;
         m[6] = a[6] * m0 + a[7] * m3 + m6;
         m[7] = a[6] * m1 + a[7] * m4 + m7;
+
+        return transform(m);
     }
 
     return {
+        matrix: function () {
+            return m.slice();
+        },
+
+        clone: function () {
+            return transform(m);
+        },
+
+        prepend: function (t) {
+            return _mmult(m, t.matrix());
+        },
+
+        append: function (t) {
+            return _mmult(t.matrix(), m);
+        },
+
+        translate: function (x, y) {
+            return _mmult([1, 0, 0, 0, 1, 0, x, y, 1], m);
+        },
+
         scale: function (x, y) {
             if (y === undefined) {
                 y = x;
             }
-            _mmult([x, 0, 0, 0, y, 0, 0, 0, 1]);
-        },
-
-        translate: function (x, y) {
-            _mmult([1, 0, 0, 0, 1, 0, x, y, 1]);
+            return _mmult([x, 0, 0, 0, y, 0, 0, 0, 1], m);
         },
 
         rotate: function (angle) {
             var c = Math.cos(radians(angle)),
                 s = Math.sin(radians(angle));
-            _mmult([c, s, 0, -s, c, 0, 0, 0, 1]);
+            return _mmult([c, s, 0, -s, c, 0, 0, 0, 1], m);
         },
 
         transformPoint: function (point) {
