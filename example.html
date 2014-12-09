@@ -9,9 +9,8 @@
             var img1 = 'images/img1.jpg';
             var img2 = 'images/img2.jpg';
             img.loadImages([img1, img2], function (images) {
-                var layer;
                 var iCanvas = new img.ImageCanvas(600, 450);
-                layer = iCanvas.addLayer(images[img1]);
+                var layer = iCanvas.addLayer(images[img1]);
                 layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
                 layer = iCanvas.addLayer(images[img2]);
                 layer.addFilter('coloradjust', {r: 0.30, g: -0.10, b: -0.15});

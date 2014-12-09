@@ -10,13 +10,13 @@
         }
 
         function drawEllipse(ctx, x, y, w, h) {
-            var kappa = .5522848,
-            ox = (w / 2) * kappa, // control point offset horizontal
-            oy = (h / 2) * kappa, // control point offset vertical
-            xe = x + w,           // x-end
-            ye = y + h,           // y-end
-            xm = x + w / 2,       // x-middle
-            ym = y + h / 2;       // y-middle
+            var kappa = .5522848;
+            var ox = (w / 2) * kappa; // control point offset horizontal
+            var oy = (h / 2) * kappa; // control point offset vertical
+            var xe = x + w;           // x-end
+            var ye = y + h;           // y-end
+            var xm = x + w / 2;       // x-middle
+            var ym = y + h / 2;       // y-middle
 
             ctx.save();
             ctx.beginPath();
@@ -34,15 +34,13 @@
             var img1 = 'images/img1.jpg';
             var img2 = 'images/img2.jpg';
             img.loadImages([img1, img2], function (images) {
-                var layer;
-                var mask;
                 var w = 360;
                 var h = 360;
                 var canvas = document.createElement('canvas');
                 var ctx = canvas.getContext('2d');
 
                 var iCanvas = new img.ImageCanvas(600, 450);
-                layer = iCanvas.addLayer(images[img1]);
+                var layer = iCanvas.addLayer(images[img1]);
                 layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
 
                 layer = iCanvas.addLayer(images[img2]);
@@ -53,7 +51,7 @@
                 canvas.height = h;
                 ctx.fillStyle = 'grey';
                 drawEllipseByCenter(ctx, w / 2, h / 2, w, h)
-                mask = layer.mask.addLayer(canvas);
+                layer.mask.addLayer(canvas);
 
                 document.body.appendChild(iCanvas.render());
             });

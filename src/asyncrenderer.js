@@ -49,10 +49,10 @@ AsyncRenderer.load = function (iCanvas, layer) {
 // Returns a html canvas from an image file location.
 AsyncRenderer.loadFile = function (src) {
     return function (_, callback) {
-        var source = new Image(),
-            canvas = document.createElement('canvas'),
-            ctx = canvas.getContext('2d');
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
 
+        var source = new Image();
         source.onload = function () {
             canvas.width = source.width;
             canvas.height = source.height;
@@ -131,9 +131,9 @@ AsyncRenderer.processMask = function (mask) {
         // First, make a black and white version of the masking canvas and pass
         // the result to the masking operation.
         AsyncRenderer.renderBW(mask, function (c) {
-            var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data,
-                maskFilter = {name: 'mask', options: {data: data, x: 0, y: 0, width: c.width, height: c.height} },
-                fn = AsyncRenderer.processImage([maskFilter]);
+            var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+            var maskFilter = {name: 'mask', options: {data: data, x: 0, y: 0, width: c.width, height: c.height} };
+            var fn = AsyncRenderer.processImage([maskFilter]);
             fn(canvas, callback);
         });
     };
@@ -213,9 +213,9 @@ AsyncRenderer.render = function (iCanvas, callback) {
 // Renders the image canvas and turns it into a black and white image. Useful for rendering a layer mask.
 AsyncRenderer.renderBW = function (iCanvas, callback) {
     AsyncRenderer.render(iCanvas, function (canvas) {
-        var data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data,
-            bwFilter = {name: 'luminancebw'},
-            fn = AsyncRenderer.processImage([bwFilter]);
+        var data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+        var bwFilter = {name: 'luminancebw'};
+        var fn = AsyncRenderer.processImage([bwFilter]);
         fn(canvas, function (err, c) {
             callback(c);
         });

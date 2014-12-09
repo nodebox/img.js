@@ -6,9 +6,8 @@
     <script src="build/img.js"></script>
     <script>
         window.onload = function () {
-            var layer,
-                iCanvas = new img.ImageCanvas(600, 450);
-            layer = iCanvas.addLayer('images/img1.jpg');
+            var iCanvas = new img.ImageCanvas(600, 450);
+            var layer = iCanvas.addLayer('images/img1.jpg');
             layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
             layer = iCanvas.addLayer('images/img2.jpg');
             layer.addFilter('coloradjust', {r: 0.30, g: -0.10, b: -0.15});

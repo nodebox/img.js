@@ -117,8 +117,8 @@ function toColor(v1, v2, v3, v4, v5) {
 
 // Converts a number of arguments into a dictionary of gradient information that is understood by the renderer.
 function toGradientData(v1, v2, v3, v4, v5) {
-    var startColor, endColor, type, rotation, spread, d,
-        data = {};
+    var startColor, endColor, type, rotation, spread, d;
+    var data = {};
 
     if (arguments.length === 1) { // The argument is a dictionary or undefined.
         d = v1 || {};
@@ -504,16 +504,16 @@ ImageCanvas.prototype.addLayer = function (arg0) {
 
 // Adds a new color layer to the canvas.
 ImageCanvas.prototype.addColorLayer = function () {
-    var c = toColor.apply(null, arguments),
-        layer = new Layer(c, TYPE_FILL);
+    var c = toColor.apply(null, arguments);
+    var layer = new Layer(c, TYPE_FILL);
     this.layers.push(layer);
     return layer;
 };
 
 // Adds a new gradient layer to the canvas.
 ImageCanvas.prototype.addGradientLayer = function () {
-    var c = toGradientData.apply(null, arguments),
-        layer = new Layer(c, TYPE_GRADIENT);
+    var c = toGradientData.apply(null, arguments);
+    var layer = new Layer(c, TYPE_GRADIENT);
     this.layers.push(layer);
     return layer;
 };
@@ -556,10 +556,11 @@ function loadImages(images, callback) {
     async.map(images,
         loadImage, function (err, loadedImages) {
             if (callback) {
+                var name, image;
                 var d = {};
                 for (var i = 0; i < loadedImages.length; i += 1) {
-                    var name = loadedImages[i][0];
-                    var image = loadedImages[i][1];
+                    name = loadedImages[i][0];
+                    image = loadedImages[i][1];
                     d[name] = image;
                 }
                 callback(d);

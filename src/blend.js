@@ -5,21 +5,21 @@ var blend, process;
 // Tests which blending modes are supported on the current system and returns a dictionary with the results.
 // For example d['source-over'] always results in true.
 function getNativeModes() {
-    var i, mode, darken, ok,
-        nativeModes = {},
-        dCanvas = document.createElement('canvas'),
-        ctx = dCanvas.getContext('2d'),
+    var i, mode, darken, ok;
+    var nativeModes = {};
+    var dCanvas = document.createElement('canvas');
+    var ctx = dCanvas.getContext('2d');
 
-        native = ['source-over', 'source-in', 'source-out', 'source-atop',
+    var native = ['source-over', 'source-in', 'source-out', 'source-atop',
             'destination-over', 'destination-in', 'destination-out',
-            'destination-atop', 'lighter', 'darker', 'copy', 'xor'],
+            'destination-atop', 'lighter', 'darker', 'copy', 'xor'];
 
-        maybeNative = ['multiply', 'screen', 'overlay', 'soft-light', 'hard-light',
+    var maybeNative = ['multiply', 'screen', 'overlay', 'soft-light', 'hard-light',
             'color-dodge', 'color-burn', 'darken', 'lighten', 'difference',
             'exclusion', 'hue', 'saturation', 'luminosity', 'color',
-            'add', 'subtract', 'average', 'negation'],
+            'add', 'subtract', 'average', 'negation'];
 
-        nonNative = ['divide', 'darker-color', 'lighter-color', 'linear-burn', 'linear-light',
+    var nonNative = ['divide', 'darker-color', 'lighter-color', 'linear-burn', 'linear-light',
             'vivid-light', 'pin-light', 'hard-mix'];
 
     for (i = 0; i < native.length; i += 1) {
@@ -54,21 +54,21 @@ function getNativeModes() {
 
 process = function (inData, outData, width, height, options) {
 
-    var blend_fn, R, G, B,
+    var blend_fn,
         sr, sg, sb, sa,
         dr, dg, db, da,
-        or, og, ob, oa,
-        max = Math.max,
-        min = Math.min,
-        div_2_255 = 2 / 255;
+        or, og, ob, oa;
+    var max = Math.max;
+    var min = Math.min;
+    var div_2_255 = 2 / 255;
 
     /*R = 0.299;
      G = 0.587;
      B = 0.114;*/
 
-    R = 0.2126;
-    G = 0.7152;
-    B = 0.0722;
+    var R = 0.2126;
+    var G = 0.7152;
+    var B = 0.0722;
 
     /** This is the formula used by Photoshop to convert a color from
      * RGB (Red, Green, Blue) to HSY (Hue, Saturation, Luminosity).
@@ -406,8 +406,8 @@ process = function (inData, outData, width, height, options) {
     }
 
     function _svg_softlight() {
-        var m,
-            pow = Math.pow;
+        var m;
+        var pow = Math.pow;
 
         if (0.0 === da) {
             or = sr;
@@ -485,9 +485,9 @@ process = function (inData, outData, width, height, options) {
     }
 
     function _colordodge() {
-        var dr1 = (dr << 8) / (255 - sr),
-            dg1 = (dg << 8) / (255 - sg),
-            db1 = (db << 8) / (255 - sb);
+        var dr1 = (dr << 8) / (255 - sr);
+        var dg1 = (dg << 8) / (255 - sg);
+        var db1 = (db << 8) / (255 - sb);
 
         or = (dr1 > 255 || sr === 255) ? 255 : dr1;
         og = (dg1 > 255 || sg === 255) ? 255 : dg1;
@@ -528,9 +528,9 @@ process = function (inData, outData, width, height, options) {
     }
 
     function _colorburn() {
-        var dr1 = 255 - ((255 - dr) << 8) / sr,
-            dg1 = 255 - ((255 - dg) << 8) / sg,
-            db1 = 255 - ((255 - db) << 8) / sb;
+        var dr1 = 255 - ((255 - dr) << 8) / sr;
+        var dg1 = 255 - ((255 - dg) << 8) / sg;
+        var db1 = 255 - ((255 - db) << 8) / sb;
 
         or = (dr1 < 0 || sr === 0) ? 0 : dr1;
         og = (dg1 < 0 || sg === 0) ? 0 : dg1;
@@ -571,9 +571,9 @@ process = function (inData, outData, width, height, options) {
     }
 
     function _linearlight() {
-        var dr1 = 2 * sr + dr - 256,
-            dg1 = 2 * sg + dg - 256,
-            db1 = 2 * sb + db - 256;
+        var dr1 = 2 * sr + dr - 256;
+        var dg1 = 2 * sg + dg - 256;
+        var db1 = 2 * sb + db - 256;
 
         or = (dr1 < 0 || (sr < 128 && dr1 < 0)) ? 0 : (dr1 > 255 ? 255 : dr1);
         og = (dg1 < 0 || (sg < 128 && dg1 < 0)) ? 0 : (dg1 > 255 ? 255 : dg1);
@@ -689,36 +689,36 @@ process = function (inData, outData, width, height, options) {
     }
 
     function _hue() {
-        var hcl1 = rgbToHsy(dr, dg, db),
-            hcl2 = rgbToHsy(sr, sg, sb),
-            rgb = hsyToRgb(hcl2[0], hcl1[1], hcl1[2]);
+        var hcl1 = rgbToHsy(dr, dg, db);
+        var hcl2 = rgbToHsy(sr, sg, sb);
+        var rgb = hsyToRgb(hcl2[0], hcl1[1], hcl1[2]);
         or = rgb[0];
         og = rgb[1];
         ob = rgb[2];
     }
 
     function _saturation() {
-        var hcl1 = rgbToHsy(dr, dg, db),
-            hcl2 = rgbToHsy(sr, sg, sb),
-            rgb = hsyToRgb(hcl1[0], hcl2[1], hcl1[2]);
+        var hcl1 = rgbToHsy(dr, dg, db);
+        var hcl2 = rgbToHsy(sr, sg, sb);
+        var rgb = hsyToRgb(hcl1[0], hcl2[1], hcl1[2]);
         or = rgb[0];
         og = rgb[1];
         ob = rgb[2];
     }
 
     function _luminosity() {
-        var hcl1 = rgbToHsy(dr, dg, db),
-            hcl2 = rgbToHsy(sr, sg, sb),
-            rgb = hsyToRgb(hcl1[0], hcl1[1], hcl2[2]);
+        var hcl1 = rgbToHsy(dr, dg, db);
+        var hcl2 = rgbToHsy(sr, sg, sb);
+        var rgb = hsyToRgb(hcl1[0], hcl1[1], hcl2[2]);
         or = rgb[0];
         og = rgb[1];
         ob = rgb[2];
     }
 
     function _color() {
-        var hcl1 = rgbToHsy(dr, dg, db),
-            hcl2 = rgbToHsy(sr, sg, sb),
-            rgb = hsyToRgb(hcl2[0], hcl2[1], hcl1[2]);
+        var hcl1 = rgbToHsy(dr, dg, db);
+        var hcl2 = rgbToHsy(sr, sg, sb);
+        var rgb = hsyToRgb(hcl2[0], hcl2[1], hcl1[2]);
         or = rgb[0];
         og = rgb[1];
         ob = rgb[2];
@@ -754,31 +754,31 @@ process = function (inData, outData, width, height, options) {
     };
 
     function rectIntersect(r1, r2) {
-        var right1 = r1.x + r1.width,
-            bottom1 = r1.y + r1.height,
-            right2 = r2.x + r2.width,
-            bottom2 = r2.y + r2.height,
+        var right1 = r1.x + r1.width;
+        var bottom1 = r1.y + r1.height;
+        var right2 = r2.x + r2.width;
+        var bottom2 = r2.y + r2.height;
 
-            x = max(r1.x, r2.x),
-            y = max(r1.y, r2.y),
-            w = max(min(right1, right2) - x, 0),
-            h = max(min(bottom1, bottom2) - y, 0);
+        var x = max(r1.x, r2.x);
+        var y = max(r1.y, r2.y);
+        var w = max(min(right1, right2) - x, 0);
+        var h = max(min(bottom1, bottom2) - y, 0);
         return [x, y, w, h];
     }
 
     (function () {
-        var pix, pixIn, x, y, a, a2, da2, demultiply, fBlend,
-            data2 = options.data,
-            opacity = options.opacity === 0 ? 0 : options.opacity || 1,
-            fn = blend_fn[options.type || '_svg_normal'],
-            dx = options.dx || 0,
-            dy = options.dy || 0,
-            ri = rectIntersect({x: 0, y: 0, width: width, height: height},
-                {x: dx, y: dy, width: options.width, height: options.height}),
-            xi = ri[0],
-            yi = ri[1],
-            wi = ri[2],
-            hi = ri[3];
+        var pix, pixIn, x, y, a, a2, da2, demultiply, fBlend;
+        var data2 = options.data;
+        var opacity = options.opacity === 0 ? 0 : options.opacity || 1;
+        var fn = blend_fn[options.type || '_svg_normal'];
+        var dx = options.dx || 0;
+        var dy = options.dy || 0;
+        var ri = rectIntersect({x: 0, y: 0, width: width, height: height},
+             {x: dx, y: dy, width: options.width, height: options.height});
+        var xi = ri[0];
+        var yi = ri[1];
+        var wi = ri[2];
+        var hi = ri[3];
 
         function pBlend() {
             sa = data2[pixIn + 3] / 255 * opacity;
@@ -858,14 +858,14 @@ function _wrap(type) {
 }
 
 blend = (function () {
-    var i, mode,
-        d = { blend: _blend },
-        modes = ['source-over', 'add', 'multiply', 'subtract', 'divide', 'screen',
+    var mode;
+    var d = { blend: _blend };
+    var modes = ['source-over', 'add', 'multiply', 'subtract', 'divide', 'screen',
             'lighten', 'darken', 'darker-color', 'lighter-color', 'linear-burn',
             'difference', 'exclusion', 'overlay', 'soft-light', 'hard-light',
             'color-dodge', 'color-burn', 'linear-light', 'vivid-light', 'pin-light',
             'hard-mix', 'hue', 'saturation', 'luminosity', 'color'];
-    for (i = 0; i < modes.length; i += 1) {
+    for (var i = 0; i < modes.length; i += 1) {
         mode = modes[i];
         d[mode] = _wrap(mode);
     }

@@ -27,15 +27,15 @@ function transform(m) {
     function _mmult(a, m) {
         m = m.slice();
 
-        var m0 = m[0],
-            m1 = m[1],
-            m2 = m[2],
-            m3 = m[3],
-            m4 = m[4],
-            m5 = m[5],
-            m6 = m[6],
-            m7 = m[7],
-            m8 = m[8];
+        var m0 = m[0];
+        var m1 = m[1];
+        var m2 = m[2];
+        var m3 = m[3];
+        var m4 = m[4];
+        var m5 = m[5];
+        var m6 = m[6];
+        var m7 = m[7];
+        var m8 = m[8];
 
         m[0] = a[0] * m0 + a[1] * m3;
         m[1] = a[0] * m1 + a[1] * m4;
@@ -85,14 +85,14 @@ function transform(m) {
         },
 
         rotate: function (angle) {
-            var c = Math.cos(radians(angle)),
-                s = Math.sin(radians(angle));
+            var c = Math.cos(radians(angle));
+            var s = Math.sin(radians(angle));
             return _mmult([c, s, 0, -s, c, 0, 0, 0, 1], m);
         },
 
         transformPoint: function (point) {
-            var x = point.x,
-                y = point.y;
+            var x = point.x;
+            var y = point.y;
             return {x: x * m[0] + y * m[3] + m[6],
                 y: x * m[1] + y * m[4] + m[7]};
         }

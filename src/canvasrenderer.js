@@ -73,10 +73,10 @@ CanvasRenderer.loadImage = function (img) {
 
 // Returns a html canvas with a solid fill color.
 CanvasRenderer.generateColor = function (iCanvas, layer) {
-    var width = layer.width !== undefined ? layer.width : iCanvas.width,
-        height = layer.height !== undefined ? layer.height : iCanvas.height,
-        canvas = document.createElement('canvas'),
-        ctx = canvas.getContext('2d');
+    var width = layer.width !== undefined ? layer.width : iCanvas.width;
+    var height = layer.height !== undefined ? layer.height : iCanvas.height;
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
 
     canvas.width = width;
     canvas.height = height;
@@ -87,16 +87,16 @@ CanvasRenderer.generateColor = function (iCanvas, layer) {
 
 // Returns a html canvas with a gradient.
 CanvasRenderer.generateGradient = function (iCanvas, layer) {
-    var grd, x1, y1, x2, y2,
-        width = layer.width !== undefined ? layer.width : iCanvas.width,
-        height = layer.height !== undefined ? layer.height : iCanvas.height,
-        cx = width / 2,
-        cy = height / 2,
-        canvas = document.createElement('canvas'),
-        ctx = canvas.getContext('2d'),
-        data = layer.data,
-        type = data.type || 'linear',
-        rotateDegrees = data.rotation || 0;
+    var grd, x1, y1, x2, y2;
+    var width = layer.width !== undefined ? layer.width : iCanvas.width;
+    var height = layer.height !== undefined ? layer.height : iCanvas.height;
+    var cx = width / 2;
+    var cy = height / 2;
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    var data = layer.data;
+    var type = data.type || 'linear';
+    var rotateDegrees = data.rotation || 0;
 
     if (type === 'radial') {
         grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(width, height) / 2);
@@ -152,14 +152,14 @@ CanvasRenderer.processImage = function (canvas, filters) {
     if (filters.length === 0) {
         return canvas;
     }
-    var i, filter, tmpData,
-        ctx = canvas.getContext('2d'),
-        width = canvas.width,
-        height = canvas.height,
-        inData = ctx.getImageData(0, 0, width, height),
-        outData = createImageData(ctx, width, height);
+    var filter, tmpData;
+    var ctx = canvas.getContext('2d');
+    var width = canvas.width;
+    var height = canvas.height;
+    var inData = ctx.getImageData(0, 0, width, height);
+    var outData = createImageData(ctx, width, height);
 
-    for (i = 0; i < filters.length; i += 1) {
+    for (var i = 0; i < filters.length; i += 1) {
         if (i > 0) {
             tmpData = inData;
             inData = outData;
@@ -215,21 +215,21 @@ function transformLayer(ctx, iCanvas, layer) {
 // Transforms the bounds of a layer (the bounding rectangle) and returns the bounding rectangle
 // that encloses this transformed rectangle.
 function transformRect(iCanvas, layer) {
-    var i, pt, minx, miny, maxx, maxy, t,
-        width = layer.img.width,
-        height = layer.img.height,
-        p1 = {x: 0, y: 0},
-        p2 = {x: width, y: 0},
-        p3 = {x: 0, y: height},
-        p4 = {x: width, y: height},
-        points = [p1, p2, p3, p4];
+    var pt, minx, miny, maxx, maxy;
+    var width = layer.img.width;
+    var height = layer.img.height;
+    var p1 = {x: 0, y: 0};
+    var p2 = {x: width, y: 0};
+    var p3 = {x: 0, y: height};
+    var p4 = {x: width, y: height};
+    var points = [p1, p2, p3, p4];
 
-    t = util.transform();
+    var t = util.transform();
     t = t.translate(iCanvas.width / 2, iCanvas.height / 2);
     t = t.append(layer.transform);
     t = t.translate(-layer.img.width / 2, -layer.img.height / 2);
 
-    for (i = 0; i < 4; i += 1) {
+    for (var i = 0; i < 4; i += 1) {
         pt = t.transformPoint(points[i]);
         if (i === 0) {
             minx = maxx = pt.x;
@@ -254,15 +254,15 @@ function transformRect(iCanvas, layer) {
 
 // Calculates the intersecting rectangle of two input rectangles.
 function rectIntersect(r1, r2) {
-    var right1 = r1.x + r1.width,
-        bottom1 = r1.y + r1.height,
-        right2 = r2.x + r2.width,
-        bottom2 = r2.y + r2.height,
+    var right1 = r1.x + r1.width;
+    var bottom1 = r1.y + r1.height;
+    var right2 = r2.x + r2.width;
+    var bottom2 = r2.y + r2.height;
 
-        x = Math.max(r1.x, r2.x),
-        y = Math.max(r1.y, r2.y),
-        w = Math.max(Math.min(right1, right2) - x, 0),
-        h = Math.max(Math.min(bottom1, bottom2) - y, 0);
+    var x = Math.max(r1.x, r2.x);
+    var y = Math.max(r1.y, r2.y);
+    var w = Math.max(Math.min(right1, right2) - x, 0);
+    var h = Math.max(Math.min(bottom1, bottom2) - y, 0);
     return {x: x, y: y, width: w, height: h};
 }
 
@@ -279,8 +279,8 @@ function calcLayerRect(iCanvas, layer) {
 
 // Transforms a layer and returns the resulting pixel data.
 function getTransformedLayerData(iCanvas, layer, rect) {
-    var canvas = document.createElement('canvas'),
-        ctx = canvas.getContext('2d');
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
     canvas.width = rect.width;
     canvas.height = rect.height;
     ctx.translate(-rect.x, -rect.y);
@@ -296,13 +296,13 @@ function getTransformedLayerData(iCanvas, layer, rect) {
 // This method is used when web workers aren't available for use on this system.
 CanvasRenderer.mergeManualBlend = function (iCanvas, layerData) {
     return function (canvas) {
-        var i, layer, blendData, tmpData, layerOptions, rect,
-            ctx = canvas.getContext('2d'),
-            width = iCanvas.width,
-            height = iCanvas.height,
-            baseData = ctx.getImageData(0, 0, width, height),
-            outData = createImageData(ctx, width, height);
-        for (i = 0; i < layerData.length; i += 1) {
+        var layer, blendData, tmpData, layerOptions, rect;
+        var ctx = canvas.getContext('2d');
+        var width = iCanvas.width;
+        var height = iCanvas.height;
+        var baseData = ctx.getImageData(0, 0, width, height);
+        var outData = createImageData(ctx, width, height);
+        for (var i = 0; i < layerData.length; i += 1) {
             layer = layerData[i];
             rect = calcLayerRect(iCanvas, layer);
             if (rect.width > 0 && rect.height > 0) {
@@ -327,8 +327,8 @@ CanvasRenderer.mergeManualBlend = function (iCanvas, layerData) {
 // Renders a single layer. This is useful when there's only one layer available (and no blending is needed)
 // or to render the base layer on which subsequent layers are blended.
 CanvasRenderer.singleLayerWithOpacity = function (iCanvas, layer) {
-    var canvas = document.createElement('canvas'),
-        ctx = canvas.getContext('2d');
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
 
     canvas.width = iCanvas.width;
     canvas.height = iCanvas.height;
@@ -347,9 +347,9 @@ CanvasRenderer.singleLayerWithOpacity = function (iCanvas, layer) {
 // This method is used when the system supports the requested blending mode(s).
 CanvasRenderer.mergeNativeBlend = function (iCanvas, layerData) {
     return function (canvas) {
-        var i, layer,
-            ctx = canvas.getContext('2d');
-        for (i = 0; i < layerData.length; i += 1) {
+        var ctx = canvas.getContext('2d');
+        var layer;
+        for (var i = 0; i < layerData.length; i += 1) {
             layer = layerData[i];
             ctx.save();
             transformLayer(ctx, iCanvas, layer);
@@ -367,9 +367,8 @@ CanvasRenderer.mergeNativeBlend = function (iCanvas, layerData) {
 };
 
 CanvasRenderer.createRenderPipe = function (Renderer, iCanvas, layerData) {
-    var i, mode, useNative, currentList,
-        layer,
-        renderPipe = [];
+    var mode, useNative, currentList, layer;
+    var renderPipe = [];
 
     function pushList() {
         if (useNative !== undefined) {
@@ -378,7 +377,7 @@ CanvasRenderer.createRenderPipe = function (Renderer, iCanvas, layerData) {
         }
     }
 
-    for (i = 1; i < layerData.length; i += 1) {
+    for (var i = 1; i < layerData.length; i += 1) {
         layer = layerData[i];
         mode = layer.blendmode;
         // todo: handle blendmode aliases.
@@ -419,11 +418,12 @@ CanvasRenderer.composite = function (iCanvas, layerData) {
 // Returns an object with additional layer information as well as the input images
 // to be passed to the different processing functions.
 CanvasRenderer.getLayerData = function (iCanvas, layerImages) {
-    var i, d, x, y, layer, layerImg, layerData = [];
-    for (i = 0; i < layerImages.length; i += 1) {
+    var d, layer, layerImg;
+    var layerData = [];
+    for (var i = 0; i < layerImages.length; i += 1) {
         layer = iCanvas.layers[i];
         layerImg = layerImages[i];
-        d = { img: layerImg, /*x: x, y: y,*/
+        d = { img: layerImg,
             opacity: layer.opacity,
             blendmode: layer.blendmode,
             transform: layer.transform,

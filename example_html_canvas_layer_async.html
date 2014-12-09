@@ -10,13 +10,13 @@
         }
 
         function drawEllipse(ctx, x, y, w, h) {
-            var kappa = .5522848,
-            ox = (w / 2) * kappa, // control point offset horizontal
-            oy = (h / 2) * kappa, // control point offset vertical
-            xe = x + w,           // x-end
-            ye = y + h,           // y-end
-            xm = x + w / 2,       // x-middle
-            ym = y + h / 2;       // y-middle
+            var kappa = .5522848;
+            var ox = (w / 2) * kappa; // control point offset horizontal
+            var oy = (h / 2) * kappa; // control point offset vertical
+            var xe = x + w;           // x-end
+            var ye = y + h;           // y-end
+            var xm = x + w / 2;       // x-middle
+            var ym = y + h / 2;       // y-middle
 
             ctx.save();
             ctx.beginPath();
@@ -31,15 +31,14 @@
         }
 
         window.onload = function () {
-            var layer, mask,
-                w = 360,
-                h = 360,
-                iCanvas = new img.ImageCanvas(600, 450),
-                canvas = document.createElement('canvas'),
-                ctx = canvas.getContext('2d'),
-                iCanvas2 = new img.ImageCanvas(650, 500);
+            var w = 360;
+            var h = 360;
+            var iCanvas = new img.ImageCanvas(600, 450);
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+            var iCanvas2 = new img.ImageCanvas(650, 500);
 
-            layer = iCanvas.addLayer('images/img1.jpg');
+            var layer = iCanvas.addLayer('images/img1.jpg');
             layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
             layer = iCanvas.addLayer('images/img2.jpg');
             layer.addFilter('coloradjust', {r: 0.30, g: 0.20, b: 0.35});
@@ -47,8 +46,8 @@
             canvas.width = w;
             canvas.height = h;
             ctx.fillStyle = 'grey';
-            drawEllipseByCenter(ctx, w / 2, h / 2, w, h)
-            mask = layer.mask.addLayer(canvas);
+            drawEllipseByCenter(ctx, w / 2, h / 2, w, h);
+            layer.mask.addLayer(canvas);
 
             iCanvas2.addLayer('black', 'cornflowerblue', 90, 0.65);
             layer = iCanvas2.addLayer('black', 'gold', 270, 0.65);
