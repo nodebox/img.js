@@ -75,6 +75,15 @@ function transform(m) {
             return _mmult([x, 0, 0, 0, y, 0, 0, 0, 1], m);
         },
 
+        skew: function (x, y) {
+            if (y === undefined) {
+                y = x;
+            }
+            var kx = Math.PI * x / 180.0;
+            var ky = Math.PI * y / 180.0;
+            return _mmult([1, Math.tan(ky), 0, -Math.tan(kx), 1, 0, 0, 0, 1], m);
+        },
+
         rotate: function (angle) {
             var c = Math.cos(radians(angle)),
                 s = Math.sin(radians(angle));

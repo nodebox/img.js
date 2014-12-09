@@ -319,7 +319,7 @@ Layer.prototype.setOpacity = function (opacity) {
 
 // Within an image canvas, a layer is by default positioned in the center.
 // Translating moves the layer away from this center.
-// Each successive call to the translate function performs an additional translation on top of the previous one.
+// Each successive call to the translate function performs an additional translation on top of the current transformation matrix.
 Layer.prototype.translate = function (tx, ty) {
     ty = ty === undefined ? 0 : ty;
     var t = util.transform();
@@ -328,7 +328,7 @@ Layer.prototype.translate = function (tx, ty) {
 };
 
 // Scaling happens relatively in a 0.0-1.0 based range where 1.0 stands for 100%.
-// Each successive call to the scale function performs an additional scaling operation on top of the previous one.
+// Each successive call to the scale function performs an additional scaling operation on top of the current transformation matrix.
 // If only one parameter is supplied, the layer is scaled proportionally.
 Layer.prototype.scale = function (sx, sy) {
     sy = sy === undefined ? sx : sy;
@@ -338,10 +338,18 @@ Layer.prototype.scale = function (sx, sy) {
 };
 
 // The supplied parameter should be in degrees (not radians).
-// Each successive call to the rotation function performs an additional rotation on top of the previous one.
+// Each successive call to the rotation function performs an additional rotation on top of the current transformation matrix.
 Layer.prototype.rotate = function (rot) {
     var t = util.transform();
     t = t.rotate(rot);
+    this.transform = this.transform.prepend(t);
+};
+
+// Each successive call to the skew function performs an additional skewing operation on top of the current transformation matrix.
+Layer.prototype.skew = function (kx, ky) {
+    ky = ky === undefined ? kx : ky;
+    var t = util.transform();
+    t = t.skew(kx, ky);
     this.transform = this.transform.prepend(t);
 };
 
