@@ -210,17 +210,17 @@ function toGradientData(v1, v2, v3, v4, v5) {
 
 function findType(data) {
     if (typeof data === 'string') {
-        return types.TYPE_PATH;
+        return TYPE_PATH;
     } else if (data instanceof Image) {
-        return types.TYPE_IMAGE;
+        return TYPE_IMAGE;
     } else if (data instanceof HTMLCanvasElement) {
-        return types.TYPE_HTML_CANVAS;
+        return TYPE_HTML_CANVAS;
     } else if (data instanceof ImageCanvas) {
-        return types.TYPE_IMAGE_CANVAS;
+        return TYPE_IMAGE_CANVAS;
     } else if (data.r !== undefined && data.g !== undefined && data.b !== undefined && data.a !== undefined) {
-        return types.TYPE_FILL;
+        return TYPE_FILL;
     } else if (data.startColor !== undefined && data.endColor !== undefined) {
-        return types.TYPE_GRADIENT;
+        return TYPE_GRADIENT;
     }
     throw new Error('Cannot establish type for data ', data);
 }
