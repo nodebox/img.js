@@ -456,13 +456,13 @@ var Pixels = function (canvas) {
     this.array = this._data.data;
 };
 
-img.Pixels.prototype.get = function (i) {
+Pixels.prototype.get = function (i) {
     i *= 4;
     var v = this.array;
     return [v[i + 0], v[i + 1], v[i + 2], v[i + 3]];
 };
 
-img.Pixels.prototype.set = function (i, rgba) {
+Pixels.prototype.set = function (i, rgba) {
     i *= 4;
     var v = this.array;
     v[i + 0] = rgba[0];
@@ -471,7 +471,7 @@ img.Pixels.prototype.set = function (i, rgba) {
     v[i + 3] = rgba[3];
 };
 
-img.Pixels.prototype.toCanvas = function () {
+Pixels.prototype.toCanvas = function () {
     var canvas = document.createElement('canvas');
     canvas.width = this.width;
     canvas.height = this.height;
@@ -578,6 +578,7 @@ ImageCanvas.prototype.draw = function (ctx, callback) {
 img = {};
 img.Layer = Layer;
 img.ImageCanvas = ImageCanvas;
+img.Pixels = Pixels;
 
 // MODULE SUPPORT ///////////////////////////////////////////////////////
 
