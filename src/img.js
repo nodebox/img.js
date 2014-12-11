@@ -445,6 +445,42 @@ Layer.prototype.isImageCanvas = function () {
     return this.type === TYPE_IMAGE_CANVAS;
 };
 
+
+// IMAGE PIXELS.
+
+var Pixels = function (canvas) {
+    this.width = canvas.width;
+    this.height = canvas.height;
+    var ctx = canvas.getContext('2d');
+    this._data = ctx.getImageData(0, 0, this.width, this.height);
+    this.array = this._data.data;
+};
+
+img.Pixels.prototype.get = function (i) {
+    i *= 4;
+    var v = this.array;
+    return [v[i + 0], v[i + 1], v[i + 2], v[i + 3]];
+};
+
+img.Pixels.prototype.set = function (i, rgba) {
+    i *= 4;
+    var v = this.array;
+    v[i + 0] = rgba[0];
+    v[i + 1] = rgba[1];
+    v[i + 2] = rgba[2];
+    v[i + 3] = rgba[3];
+};
+
+img.Pixels.prototype.toCanvas = function () {
+    var canvas = document.createElement('canvas');
+    canvas.width = this.width;
+    canvas.height = this.height;
+    var ctx = canvas.getContext('2d');
+    ctx.putImageData(this._data, 0, 0);
+    return canvas;
+};
+
+
 // IMAGE CANVAS.
 
 ImageCanvas = function (width, height) {
