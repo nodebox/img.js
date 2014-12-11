@@ -14,7 +14,7 @@ function clamp(val, min, max) {
     return Math.min(max, Math.max(min, val));
 }
 
-// Basic affine transform functionality limited to the following operations: scale, translate and rotate.
+// Basic affine transform functionality.
 function transform(m) {
     // Identity matrix.
     if (m === undefined) {
@@ -57,11 +57,17 @@ function transform(m) {
         },
 
         prepend: function (t) {
-            return _mmult(m, t.matrix());
+            if (t.matrix) {
+                t = t.matrix();
+            }
+            return _mmult(m, t);
         },
 
         append: function (t) {
-            return _mmult(t.matrix(), m);
+            if (t.matrix) {
+                t = t.matrix();
+            }
+            return _mmult(t, m);
         },
 
         translate: function (x, y) {

@@ -17,6 +17,11 @@ var TYPE_IMAGE_CANVAS = 'iCanvas';
 var TYPE_FILL = 'fill';
 var TYPE_GRADIENT = 'gradient';
 
+var IDENTITY_TRANSFORM = util.transform();
+var Transform = IDENTITY_TRANSFORM;
+
+var clamp = util.clamp;
+
 // Named colors supported by all browsers.
 // See: http://www.w3schools.com/html/html_colornames.asp
 var colors = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'transparent', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'];
@@ -203,7 +208,7 @@ function toGradientData(v1, v2, v3, v4, v5) {
         data.rotation = rotation;
     }
 
-    data.spread = util.clamp(spread, 0, 0.99);
+    data.spread = clamp(spread, 0, 0.99);
 
     return data;
 }
@@ -245,7 +250,7 @@ Layer = function (data, type) {
     this.blendmode = 'source-over';
 
     // Transformations.
-    this.transform = util.transform();
+    this.transform = IDENTITY_TRANSFORM;
     this.flip_h = false;
     this.flip_v = false;
 
@@ -254,6 +259,8 @@ Layer = function (data, type) {
 
     this.filters = [];
 };
+
+Layer.Transform = Layer.IDENTITY_TRANSFORM = IDENTITY_TRANSFORM;
 
 // Copies the layer object.
 Layer.prototype.clone = function () {
@@ -314,7 +321,7 @@ Layer.prototype.clone = function () {
 
 // Sets the opacity of the layer (requires a number in the range 0.0-1.0).
 Layer.prototype.setOpacity = function (opacity) {
-    this.opacity = util.clamp(opacity, 0, 1);
+    this.opacity = clamp(opacity, 0, 1);
 };
 
 // Within an image canvas, a layer is by default positioned in the center.
@@ -322,8 +329,7 @@ Layer.prototype.setOpacity = function (opacity) {
 // Each successive call to the translate function performs an additional translation on top of the current transformation matrix.
 Layer.prototype.translate = function (tx, ty) {
     ty = ty === undefined ? 0 : ty;
-    var t = util.transform();
-    t = t.translate(tx, ty);
+    var t = Transform.translate(tx, ty);
     this.transform = this.transform.prepend(t);
 };
 
@@ -332,24 +338,21 @@ Layer.prototype.translate = function (tx, ty) {
 // If only one parameter is supplied, the layer is scaled proportionally.
 Layer.prototype.scale = function (sx, sy) {
     sy = sy === undefined ? sx : sy;
-    var t = util.transform();
-    t = t.scale(sx, sy);
+    var t = Transform.scale(sx, sy);
     this.transform = this.transform.prepend(t);
 };
 
 // The supplied parameter should be in degrees (not radians).
 // Each successive call to the rotation function performs an additional rotation on top of the current transformation matrix.
 Layer.prototype.rotate = function (rot) {
-    var t = util.transform();
-    t = t.rotate(rot);
+    var t = Transform.rotate(rot);
     this.transform = this.transform.prepend(t);
 };
 
 // Each successive call to the skew function performs an additional skewing operation on top of the current transformation matrix.
 Layer.prototype.skew = function (kx, ky) {
     ky = ky === undefined ? kx : ky;
-    var t = util.transform();
-    t = t.skew(kx, ky);
+    var t = Transform.skew(kx, ky);
     this.transform = this.transform.prepend(t);
 };
 
@@ -567,6 +570,7 @@ function loadImages(images, callback) {
             }
         });
 }
+
 img.loadImages = loadImages;
 
 module.exports = img;
