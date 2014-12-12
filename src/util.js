@@ -10,6 +10,10 @@ function radians(degrees) {
     return degrees / 180 * Math.PI;
 }
 
+function distance(x0, y0, x1, y1) {
+    return Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+}
+
 function clamp(val, min, max) {
     return Math.min(max, Math.max(min, val));
 }
@@ -105,7 +109,10 @@ function transform(m) {
     };
 }
 
-exports.degrees = degrees;
-exports.radians = radians;
-exports.clamp = clamp;
-exports.transform = transform;
+module.exports = {
+    degrees: degrees,
+    radians: radians,
+    distance: distance,
+    clamp: clamp,
+    transform: transform
+};

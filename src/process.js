@@ -13,6 +13,10 @@
 
 'use strict';
 
+var util = require('./util');
+
+var clamp = util.clamp;
+
 function defaultOptions(options, defaults) {
     if (!options) {
         return defaults;
@@ -30,8 +34,15 @@ function defaultOptions(options, defaults) {
     return o;
 }
 
-function clamp(val, min, max) {
-    return Math.min(max, Math.max(min, val));
+function smoothstep(a, b, x) {
+    /* Returns a smooth transition between 0.0 and 1.0 using Hermite interpolation (cubic spline),
+     * where x is a number between a and b. The return value will ease (slow down) as x nears a or b.
+     * For x smaller than a, returns 0.0. For x bigger than b, returns 1.0.
+     */
+    if (x < a) { return 0.0; }
+    if (x >=b) { return 1.0; }
+    x = (x - a) / ( b - a);
+    return x * x * (3 - 2 * x);
 }
 
 function noise() {
@@ -366,6 +377,46 @@ function gaussian(inData, outData, width, height, kernelSize) {
     }
 }
 
+function getPixel(v, i) {
+    i *= 4;
+    return [v[i + 0], v[i + 1], v[i + 2], v[i + 3]];
+}
+
+function setPixel(v, i, rgba) {
+    i *= 4;
+    v[i + 0] = rgba[0];
+    v[i + 1] = rgba[1];
+    v[i + 2] = rgba[2];
+    v[i + 3] = rgba[3];
+}
+
+// Polar filters (distortion filters) are from canvas.js: https://github.com/clips/pattern/blob/master/pattern/canvas.js (BSD)
+// De Smedt T. & Daelemans W. (2012). Pattern for Python. Journal of Machine Learning Research.
+// Based on: L. Spagnolini, 2007
+
+function polar(inData, outData, x0, y0, width, height, callback) {
+    /* Sets image data based on a polar coordinates filter.
+     * The given callback is a function(distance, angle) that returns new [distance, angle].
+     */
+    x0 = width / 2 + (x0 || 0);
+    y0 = height / 2 + (y0 || 0);
+    var y1, x1, x, y, d, a, v;
+    for (y1 = 0; y1 < height; y1 += 1) {
+        for (x1 = 0; x1 < width; x1 += 1) {
+            x = x1 - x0;
+            y = y1 - y0;
+            d = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+            a = Math.atan2(y, x);
+            v = callback(d, a);
+            d = v[0];
+            a = v[1];
+            setPixel(outData, x1 + y1 * width, getPixel(inData,
+                Math.round(x0 + Math.cos(a) * d) +
+                Math.round(y0 + Math.sin(a) * d) * width
+            ));
+        }
+    }
+}
 
 var process = {
 
@@ -1199,8 +1250,83 @@ var process = {
             outData[i + 2] = inData[i + 2];
             outData[i + 3] = inData[i + 3] * data[i] / 255 * data[i + 3] / 255;
         }
+    },
+
+    // Distortion filters
+
+    bump: function (inData, outData, width, height, options) {
+        /* options:
+         *  - dx: horizontal offset (in pixels) of the effect.
+         *  - dy: vertical offset (in pixels) of the effect.
+         *  - radius: the radius of the effect in pixels.
+         *  - zoom: the amount of bulge (0.0-1.0).
+         */
+        options = defaultOptions(options, {dx: 0, dy: 0, radius: 0, zoom: 0});
+        var m1 = options.radius;
+        var m2 = clamp(options.zoom, 0, 1);
+        return polar(inData, outData, options.dx, options.dy, width, height, function (d, a) {
+            return [d * smoothstep(0, m2, d / m1), a];
+        });
+    },
+
+    dent: function (inData, outData, width, height, options) {
+        /* options:
+         *  - dx: horizontal offset (in pixels) of the effect.
+         *  - dy: vertical offset (in pixels) of the effect.
+         *  - radius: the radius of the effect in pixels.
+         *  - zoom: the amount of pinch (0.0-1.0).
+         */
+        options = defaultOptions(options, {dx: 0, dy: 0, radius: 0, zoom: 0});
+        var m1 = options.radius;
+        var m2 = clamp(options.zoom, 0, 1);
+        return polar(inData, outData, options.dx, options.dy, width, height, function (d, a) {
+            return [2 * d - d * smoothstep(0, m2, d / m1), a];
+        });
+    },
+
+    pinch: function (inData, outData, width, height, options) {
+        /* options:
+         *  - dx: horizontal offset (in pixels) of the effect.
+         *  - dy: vertical offset (in pixels) of the effect.
+         *  - zoom: the amount of bulge or pinch (-1.0-1.0):
+         */
+        options = defaultOptions(options, {dx: 0, dy: 0, zoom: 0});
+        var m1 = util.distance(0, 0, width, height);
+        var m2 = clamp(options.zoom * 0.75, -0.75, 0.75);
+        return polar(inData, outData, options.dx, options.dy, width, height, function (d, a) {
+            return [d * Math.pow(m1 / d, m2) * (1 - m2), a];
+        });
+    },
+
+    splash: function (inData, outData, width, height, options) {
+        /* options:
+         *  - dx: horizontal offset (in pixels) of the effect.
+         *  - dy: vertical offset (in pixels) of the effect.
+         *  - radius: the radius of the unaffected area in pixels.
+         */
+        options = defaultOptions(options, {dx: 0, dy: 0, radius: 0});
+        var m = options.radius;
+        return polar(inData, outData, options.dx, options.dy, width, height, function (d, a) {
+            return [(d > m)? m : d, a];
+        });
+    },
+
+    twirl: function (inData, outData, width, height, options) {
+        /* options:
+         *  - dx: horizontal offset (in pixels) of the effect.
+         *  - dy: vertical offset (in pixels) of the effect.
+         *  - radius: the radius of the effect in pixels.
+         *  - angle: the amount of rotation in degrees.
+         */
+        options = defaultOptions(options, {dx: 0, dy: 0, radius: 0, angle: 0});
+        var m1 = util.radians(options.angle);
+        var m2 = options.radius;
+        return polar(inData, outData, options.dx, options.dy, width, height, function (d, a) {
+            return [d, a + (1 - smoothstep(-m2, m2, d)) * m1];
+        });
     }
 };
+
 
 // MODULE SUPPORT ///////////////////////////////////////////////////////
 
