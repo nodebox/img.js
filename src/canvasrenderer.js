@@ -296,7 +296,7 @@ function getTransformedLayerData(iCanvas, layer, rect) {
 // This method is used when web workers aren't available for use on this system.
 CanvasRenderer.mergeManualBlend = function (iCanvas, layerData) {
     return function (canvas) {
-        var layer, blendData, tmpData, layerOptions, rect;
+        var layer, blendMode, blendData, tmpData, layerOptions, rect;
         var ctx = canvas.getContext('2d');
         var width = iCanvas.width;
         var height = iCanvas.height;
@@ -316,7 +316,8 @@ CanvasRenderer.mergeManualBlend = function (iCanvas, layerData) {
                 if (blend[layer.blendmode] === undefined) {
                     throw new Error('No blend mode named \'' + layer.blendmode + '\'');
                 }
-                blend[layer.blendmode](baseData.data, outData.data, width, height, layerOptions);
+                blendMode = blend.realBlendMode(layer.blendmode);
+                blend[blendMode](baseData.data, outData.data, width, height, layerOptions);
             }
         }
         ctx.putImageData(outData, 0, 0);
@@ -357,7 +358,7 @@ CanvasRenderer.mergeNativeBlend = function (iCanvas, layerData) {
                 ctx.globalAlpha = layer.opacity;
             }
             if (layer.blendmode !== 'source-over') {
-                ctx.globalCompositeOperation = layer.blendmode;
+                ctx.globalCompositeOperation = blend.realBlendMode(layer.blendmode);
             }
             ctx.drawImage(layer.img, 0, 0);
             ctx.restore();

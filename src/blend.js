@@ -2,6 +2,26 @@
 
 var blend, process;
 
+var aliases = {
+    normal: 'source-over',
+    'linear-dodge': 'add'
+};
+
+function addAliases(d) {
+    var i, mode, alias;
+    var modes = Object.keys(aliases);
+    for (i = 0; i < modes.length; i += 1) {
+        mode = modes[i];
+        alias = aliases[mode];
+        d[mode] = d[alias];
+    }
+}
+
+function realBlendMode(mode) {
+    if (aliases[mode] !== undefined) { return aliases[mode]; }
+    return mode;
+}
+
 // Tests which blending modes are supported on the current system and returns a dictionary with the results.
 // For example d['source-over'] always results in true.
 function getNativeModes() {
@@ -49,6 +69,9 @@ function getNativeModes() {
         ctx.restore();
         nativeModes[mode] = ok;
     }
+
+    addAliases(nativeModes);
+
     return nativeModes;
 }
 
@@ -869,12 +892,15 @@ blend = (function () {
         mode = modes[i];
         d[mode] = _wrap(mode);
     }
+    modes = Object.keys(modes);
+    for (i = 0; i < modes.length; i += 1) {
 
+    }
     // Aliases for the blending modes
-    d.normal = d['source-over'];
-    d['linear-dodge'] = d.add;
+    addAliases(d);
 
     d.getNativeModes = getNativeModes;
+    d.realBlendMode = realBlendMode;
 
     return d;
 }());
