@@ -630,7 +630,7 @@ var process = {
     },
 
     convolve5x5: function (inData, outData, width, height, options) {
-        convolve3x3(inData, outData, width, height, options.kernel);
+        convolve5x5(inData, outData, width, height, options.kernel);
     },
 
     // A 3x3 high-pass filter
