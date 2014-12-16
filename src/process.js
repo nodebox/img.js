@@ -1225,6 +1225,45 @@ var process = {
         }
     },
 
+    mosaic: function (inData, outData, width, height, options) {
+        options = defaultOptions(options, {blockSize: 8});
+        var blockSize = clamp(options.blockSize, 1, Math.max(width, height)),
+            yBlocks = Math.ceil(height / blockSize),
+            xBlocks = Math.ceil(width / blockSize),
+            y0, y1, x0, x1, idx, pidx,
+            i, j, bidx, r, g, b, bi, bj,
+            n = yBlocks * xBlocks,
+            prog, lastProg = 0;
+
+        y0 = 0;
+        bidx = 0;
+        for (i = 0; i < yBlocks; i += 1) {
+            y1 = clamp(y0 + blockSize, 0, height);
+            x0 = 0;
+            for(j = 0; j < xBlocks; j += 1) {
+                x1 = clamp(x0 + blockSize, 0, width);
+
+                idx = (y0 * width + x0) << 2;
+                r = inData[idx];
+                g = inData[idx + 1];
+                b = inData[idx + 2];
+
+                for(bi = y0; bi < y1; bi += 1) {
+                   for(bj = x0; bj < x1; bj += 1) {
+                       pidx = (bi * width + bj) << 2;
+                       outData[pidx] = r;
+                       outData[pidx + 1] = g;
+                       outData[pidx + 2] = b;
+                       outData[pidx + 3] = inData[pidx + 3];
+                   }
+                }
+                x0 = x1;
+                bidx += 1;
+            }
+            y0 = y1;
+        }
+    },
+
     luminancebw: function (inData, outData, width, height) {
         var i, n = width * height * 4,
             lum;
