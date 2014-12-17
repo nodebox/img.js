@@ -13,6 +13,7 @@
 
 'use strict';
 
+var stackblur = require('stackblur');
 var util = require('./util');
 
 var clamp = util.clamp;
@@ -591,9 +592,13 @@ var process = {
         }
     },
 
+    // Uses fast stackblur algorithm from http://www.quasimondo.com/StackBlurForCanvas
     blur: function (inData, outData, width, height, options) {
-        options = defaultOptions(options, {kernelSize: 10});
-        gaussian(inData, outData, width, height, options.kernelSize);
+        options = defaultOptions(options, {radius: 10});
+        for (var i = 0; i < inData.length; i += 1) {
+            outData[i] = inData[i];
+        }
+        stackblur(outData, width, height, options.radius);
     },
 
     glow: function (inData, outData, width, height, options) {
