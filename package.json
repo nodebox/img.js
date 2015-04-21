@@ -26,7 +26,7 @@
   "main": "./src/img.js",
   "scripts": {
     "ensure-build-dir": "mkdir -p build",
-    "browserify": "npm run ensure-build-dir && browserify src/img.js --standalone img > build/img.js",
+    "browserify": "npm run ensure-build-dir && browserify src/img.js --standalone img > dist/img.js",
     "watchify": "npm run ensure-build-dir && watchify src/img.js --standalone img --debug -o build/img.js -v",
     "uglify": "browserify src/img.js --standalone img -g uglifyify > dist/img.min.js",
     "dist": "npm run test && npm run browserify && npm run uglify"
