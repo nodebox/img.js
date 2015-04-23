@@ -4,7 +4,7 @@ var util = require('./util');
 var CanvasRenderer = require('./canvasrenderer');
 var AsyncRenderer = require('./asyncrenderer');
 
-var img, ImageCanvas, Layer;
+var img, ImageCanvas, Layer, Img;
 
 var DEFAULT_WIDTH = 800;
 var DEFAULT_HEIGHT = 800;
@@ -390,6 +390,15 @@ Layer.prototype.draw = function (ctx) {
     canvas.draw(ctx);
 };
 
+Layer.prototype.toCanvas = function () {
+    var canvas = document.createElement('canvas');
+    canvas.width = this.width;
+    canvas.height = this.height;
+    var ctx = canvas.getContext('2d');
+    this.draw(ctx);
+    return canvas;
+};
+
 Layer.fromFile = function (filename) {
     return new Layer(filename, TYPE_PATH);
 };
@@ -575,9 +584,268 @@ ImageCanvas.prototype.draw = function (ctx, callback) {
     }
 };
 
+
+// Img
+
+function isPoint(arg) {
+    if (!arg) { return false; }
+    return arg.x !== undefined && arg.y !== undefined;
+}
+
+function pointFromArray(arg) {
+    var x = arg[0];
+    var y = arg.length > 1 ? arg[1] : x;
+    return {x: x, y: y};
+}
+
+function pointFromNumber(arg) {
+    return {x: arg, y: arg};
+}
+
+function isValidArg(arg) {
+    return arg !== undefined && arg !== null;
+}
+
+function convertArg(arg) {
+    if (Array.isArray(arg)) {
+        return pointFromArray(arg);
+    } else if (typeof arg === 'number') {
+        return pointFromNumber(arg);
+    } else if (isPoint(arg)) {
+        return arg;
+    }
+}
+
+Img = function (canvas, x, y) {
+    this.canvas = canvas;
+    this.originalWidth = canvas ? canvas.width : 0;
+    this.originalHeight = canvas ? canvas.height: 0;
+    this.transform = x || y ? Transform.translate(x, y) : Layer.IDENTITY_TRANSFORM;
+};
+
+Img.prototype.clone = function () {
+    var n = new Img();
+    n.canvas = this.canvas;
+    n.originalWidth = this.originalWidth;
+    n.originalHeight = this.originalHeight;
+    n.transform = this.transform;
+    return n;
+};
+
+Img.prototype.withCanvas = function (canvas) {
+    var n = this.clone();
+    n.canvas = canvas;
+    return n;
+};
+
+Img.prototype._transform = function (t) {
+    var n = this.clone();
+    n.transform = n.transform.prepend(t);
+    return n;
+};
+
+Img.prototype.translate = function (position) {
+    var t = pointFromNumber(0);
+    var args = arguments;
+    if (args.length === 1 && isValidArg(position)) {
+        t = convertArg(position);
+    } else if (args.length === 2) {
+        t = {x: args[0], y: args[1]};
+    }
+    if (t.x === 0 && t.y === 0) { return this; }
+    return this._transform(Transform.translate(t.x, t.y));
+};
+
+Img.prototype.rotate = function (angle) {
+    if (!angle) { return this; }
+    var o = pointFromNumber(0);
+    var args = arguments;
+    if (args.length === 2) {
+        o = convertArg(args[1]);
+    } else if (args.length === 3) {
+        o = {x: args[1], y: args[2]};
+    }
+    return this._transform(Transform.translate(o.x, o.y).rotate(angle).translate(-o.x, -o.y));
+};
+
+Img.prototype.scale = function (scale) {
+    var s = pointFromNumber(100);
+    var o = pointFromNumber(0);
+    var args = arguments;
+    if (args.length === 1 && isValidArg(scale)) {
+        s = convertArg(scale);
+    } else if (args.length === 2) {
+        if (typeof scale === 'number' && typeof args[1] === 'number') {
+            s = {x: args[0], y: args[1]};
+        } else {
+            s = convertArg(scale);
+            o = convertArg(args[1]);
+        }
+    } else if (args.length === 4) {
+        s = {x: args[0], y: args[1]};
+        o = {x: args[2], y: args[3]};
+    }
+    if (s.x === 100 && s.y === 100) { return this; }
+    return this._transform(Transform.translate(o.x, o.y).scale(s.x / 100, s.y / 100).translate(-o.x, -o.y));
+};
+
+Img.prototype.skew = function (skew) {
+    var k = pointFromNumber(0);
+    var o = pointFromNumber(0);
+    var args = arguments;
+    if (args.length === 1 && isValidArg(skew)) {
+        k = convertArg(skew);
+    } else if (args.length === 2) {
+        if (typeof skew === 'number' && typeof args[1] === 'number') {
+            k = {x: args[0], y: args[1]};
+        } else {
+            k = convertArg(skew);
+            o = convertArg(args[1]);
+        }
+    } else if (args.length === 4) {
+        k = {x: args[0], y: args[1]};
+        o = {x: args[2], y: args[3]};
+    }
+    if (k.x === 0 && k.y === 0) { return this; }
+    return this._transform(Transform.translate(o.x, o.y).skew(k.x, k.y).translate(-o.x, -o.y));
+};
+
+Img.prototype.transformed = function () {
+    return img.merge([this]);
+};
+
+Img.prototype.bounds = function () {
+    var t = this.transform;
+    var x = this.originalWidth / 2;
+    var y = this.originalHeight / 2;
+
+    var p1 = {x: -x, y: -y};
+    var p2 = {x: x, y: -y};
+    var p3 = {x: -x, y: y};
+    var p4 = {x: x, y: y};
+    var points = [p1, p2, p3, p4];
+    var pt, minx, miny, maxx, maxy;
+
+    for (var i = 0; i < 4; i += 1) {
+        pt = t.transformPoint(points[i]);
+        if (i === 0) {
+            minx = maxx = pt.x;
+            miny = maxy = pt.y;
+        } else {
+            if (pt.x < minx) {
+                minx = pt.x;
+            }
+            if (pt.x > maxx) {
+                maxx = pt.x;
+            }
+            if (pt.y < miny) {
+                miny = pt.y;
+            }
+            if (pt.y > maxy) {
+                maxy = pt.y;
+            }
+        }
+    }
+    return {x: minx, y: miny, width: maxx - minx, height: maxy - miny};
+};
+
+Img.prototype.colorize = function (color) {
+    var colorLayer = Layer.fromColor(color);
+    colorLayer.width = this.originalWidth;
+    colorLayer.height = this.originalHeight;
+    var i = new Img(colorLayer.toCanvas());
+    i = i._transform(this.transform.matrix());
+    return img.merge([this, i]);
+};
+
+Img.prototype.desaturate = function () {
+    var layer = this.toLayer(false);
+    layer.addFilter('desaturate');
+    return this.withCanvas(layer.toCanvas());
+};
+
+Img.prototype.crop = function (bounding) {
+    // Calculates the intersecting rectangle of two input rectangles.
+    function rectIntersect(r1, r2) {
+        var right1 = r1.x + r1.width,
+            bottom1 = r1.y + r1.height,
+            right2 = r2.x + r2.width,
+            bottom2 = r2.y + r2.height,
+
+            x = Math.max(r1.x, r2.x),
+            y = Math.max(r1.y, r2.y),
+            w = Math.max(Math.min(right1, right2) - x, 0),
+            h = Math.max(Math.min(bottom1, bottom2) - y, 0);
+        return {x: x, y: y, width: w, height: h};
+    }
+
+    var iBounds = this.bounds();
+    var bounds = bounding.bounds();
+    var ri = rectIntersect(iBounds, bounds);
+    var width = Math.ceil(ri.width);
+    var height = Math.ceil(ri.height);
+
+    if (ri.width === 0 || ri.height === 0) {
+        throw new Error('Resulting image has no dimensions');
+    }
+
+    var canvas = new img.ImageCanvas(width, height);
+    var l1 = canvas.addLayer(this.toLayer());
+    l1.translate(width / 2 - bounds.width - bounds.x,
+        height / 2 - bounds.height - bounds.y);
+    if (width < bounds.width && ri.x > iBounds.x) {
+        l1.translate(bounds.width - width, 0);
+    }
+    if (height < bounds.height && ri.y > iBounds.y) {
+        l1.translate(0, bounds.height - height);
+    }
+
+    return new Img(canvas.render(), ri.x + width / 2, ri.y + height / 2);
+};
+
+Img.prototype.draw = function (ctx) {
+    ctx.save();
+    var m = this.transform.matrix();
+    ctx.transform(m[0], m[1], m[3], m[4], m[6], m[7]);
+    ctx.translate(-this.originalWidth / 2, -this.originalHeight / 2);
+    ctx.drawImage(this.canvas, 0, 0);
+    ctx.restore();
+};
+
+Img.prototype.toLayer = function (copyTransformations) {
+    var canvas = document.createElement('canvas');
+    canvas.width = this.canvas.width;
+    canvas.height = this.canvas.height;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(this.canvas, 0, 0);
+    var layer = img.Layer.fromHtmlCanvas(canvas);
+    if (copyTransformations === undefined) {
+        copyTransformations = true;
+    }
+    if (copyTransformations) {
+        layer.transform = this.transform;
+    }
+    return layer;
+};
+
+Img.prototype.getPixels = function () {
+    return new Pixels(this.canvas);
+};
+
+Img.prototype.toImage = function () {
+    var b = this.bounds();
+    var cropped = this.crop({bounds: function() { return b; }});
+    var i = new Image();
+    i.width = cropped.canvas.width;
+    i.height = cropped.canvas.height;
+    i.src = cropped.canvas.toDataURL();
+    return i;
+};
+
 img = {};
 img.Layer = Layer;
 img.ImageCanvas = ImageCanvas;
+img.Img = Img;
 img.Pixels = Pixels;
 
 // MODULE SUPPORT ///////////////////////////////////////////////////////
@@ -608,6 +876,28 @@ function loadImages(images, callback) {
         });
 }
 
+function merge(images) {
+    var i, image, b, l;
+    for (i = 0; i < images.length; i += 1) {
+        image = images[i];
+        if (i === 0) {
+            b = image.bounds();
+        } else {
+            b = b.unite(image.bounds());
+        }
+    }
+    var dx = b.width / 2 + b.x;
+    var dy = b.height / 2 + b.y;
+
+    var canvas = new ImageCanvas(b.width, b.height);
+    for (i = 0; i < images.length; i += 1) {
+        l = canvas.addLayer(images[i].toLayer());
+        l.translate(-dx, -dy);
+    }
+    return new Img(canvas.render(), dx, dy);
+};
+
 img.loadImages = loadImages;
+img.merge = merge;
 
 module.exports = img;
