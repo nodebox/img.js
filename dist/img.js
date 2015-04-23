@@ -3819,6 +3819,14 @@ function loadImages(images, callback) {
         });
 }
 
+function rectUnite(r1, r2) {
+    var x = Math.min(r1.x, r2.x),
+        y = Math.min(r1.y, r2.y),
+        width = Math.max(r1.x + r1.width, r2.x + r2.width) - x,
+        height = Math.max(r1.y + r1.height, r2.y + r2.height) - y;
+    return {x: x, y: y, width: width, height: height};
+}
+
 function merge(images) {
     var i, image, b, l;
     for (i = 0; i < images.length; i += 1) {
@@ -3826,7 +3834,7 @@ function merge(images) {
         if (i === 0) {
             b = image.bounds();
         } else {
-            b = b.unite(image.bounds());
+            b = rectUnite(b, image.bounds());
         }
     }
     var dx = b.width / 2 + b.x;
