@@ -881,7 +881,7 @@ function rectUnite(r1, r2) {
         y = Math.min(r1.y, r2.y),
         width = Math.max(r1.x + r1.width, r2.x + r2.width) - x,
         height = Math.max(r1.y + r1.height, r2.y + r2.height) - y;
-    return new Rect(x, y, width, height);
+    return {x: x, y: y, width: width, height: height};
 }
 
 function merge(images) {
