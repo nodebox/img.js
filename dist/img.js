@@ -1599,6 +1599,9 @@ function realBlendMode(mode) {
 // Tests which blending modes are supported on the current system and returns a dictionary with the results.
 // For example d['source-over'] always results in true.
 function getNativeModes() {
+    if (typeof document === 'undefined') {
+        return {};
+    }
     var i, mode, darken, ok;
     var nativeModes = {};
     var dCanvas = document.createElement('canvas');
@@ -3227,19 +3230,18 @@ Layer.prototype.clone = function () {
         return f;
     }
 
-    var d = {
-        data: this.data,
-        type: this.type,
-        width: this.width,
-        height: this.height,
-        opacity: this.opacity,
-        blendmode: this.blendmode,
-        transform: this.transform,
-        flip_h: this.flip_h,
-        flip_v: this.flip_v,
-        mask: this.mask.clone(),
-        filters: []
-    };
+    var d = Object.create(Layer.prototype);
+    d.data = this.data;
+    d.type = this.type;
+    d.width = this.width;
+    d.height = this.height;
+    d.opacity = this.opacity;
+    d.blendmode = this.blendmode;
+    d.transform = this.transform;
+    d.flip_h = this.flip_h;
+    d.flip_v = this.flip_v;
+    d.mask = this.mask.clone();
+    d.filters = [];
 
     if (this.type === TYPE_IMAGE_CANVAS) {
         d.data = this.data.clone();
@@ -3256,8 +3258,6 @@ Layer.prototype.clone = function () {
     for (var i = 0; i < this.filters.length; i += 1) {
         d.filters.push(cloneFilter(this.filters[i]));
     }
-
-    d.__proto__ = this.__proto__;
 
     return d;
 };
@@ -3846,7 +3846,7 @@ function merge(images) {
         l.translate(-dx, -dy);
     }
     return new Img(canvas.render(), dx, dy);
-};
+}
 
 img.loadImages = loadImages;
 img.merge = merge;
