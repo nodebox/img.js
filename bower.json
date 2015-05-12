@@ -1,0 +1,23 @@
+{
+  "name": "img.js",
+  "description": "A JavaScript library for bitmap graphics.",
+  "version": "0.1.4",
+  "main": "dist/img.js",
+  "keywords": [
+    "bitmap",
+    "pixel",
+    "graphics",
+    "canvas",
+    "2d"
+  ],
+  "ignore": [
+    "build",
+    "images",
+    "src",
+    "test"
+  ],
+  "dependencies": {
+    "async": "~0.2.10",
+    "stackblur": "1.0.0"
+  }
+}
