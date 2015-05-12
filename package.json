@@ -20,11 +20,13 @@
   "devDependencies": {
     "browserify": "^9.0.8",
     "jshint": "^2.7.0",
+    "mocha": "^2.2.4",
     "uglifyify": "^3.0.1",
     "watchify": "^1.0.6"
   },
   "main": "./src/img.js",
   "scripts": {
+    "test": "mocha --recursive",
     "ensure-build-dir": "mkdir -p build",
     "browserify": "npm run ensure-build-dir && browserify src/img.js --standalone img > dist/img.js",
     "watchify": "npm run ensure-build-dir && watchify src/img.js --standalone img --debug -o build/img.js -v",
