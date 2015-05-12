@@ -25,6 +25,9 @@ function realBlendMode(mode) {
 // Tests which blending modes are supported on the current system and returns a dictionary with the results.
 // For example d['source-over'] always results in true.
 function getNativeModes() {
+    if (typeof document === 'undefined') {
+        return {};
+    }
     var i, mode, darken, ok;
     var nativeModes = {};
     var dCanvas = document.createElement('canvas');
