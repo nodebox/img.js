@@ -3612,7 +3612,7 @@ Img.prototype.rotate = function (angle) {
 };
 
 Img.prototype.scale = function (scale) {
-    var s = pointFromNumber(100);
+    var s = pointFromNumber(1);
     var o = pointFromNumber(0);
     var args = arguments;
     if (args.length === 1 && isValidArg(scale)) {
@@ -3628,8 +3628,8 @@ Img.prototype.scale = function (scale) {
         s = {x: args[0], y: args[1]};
         o = {x: args[2], y: args[3]};
     }
-    if (s.x === 100 && s.y === 100) { return this; }
-    return this._transform(Transform.translate(o.x, o.y).scale(s.x / 100, s.y / 100).translate(-o.x, -o.y));
+    if (s.x === 1 && s.y === 1) { return this; }
+    return this._transform(Transform.translate(o.x, o.y).scale(s.x, s.y).translate(-o.x, -o.y));
 };
 
 Img.prototype.skew = function (skew) {
