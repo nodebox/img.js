@@ -842,6 +842,7 @@ var process = {
 
     coloradjust: function (inData, outData, width, height, options) {
         options = defaultOptions(options, {r: 0, g: 0, b: 0});
+    rgbAdjust: function (inData, outData, width, height, options) {
         var i, n = width * height * 4,
             r, g, b,
             ar = clamp(options.r, -1, 1) * 255,
