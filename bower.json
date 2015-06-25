@@ -1,7 +1,7 @@
 {
   "name": "img.js",
   "description": "A JavaScript library for bitmap graphics.",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "main": "dist/img.js",
   "keywords": [
     "bitmap",
