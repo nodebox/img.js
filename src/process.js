@@ -840,19 +840,20 @@ var process = {
             false, true, true);
     },
 
-    coloradjust: function (inData, outData, width, height, options) {
-        options = defaultOptions(options, {r: 0, g: 0, b: 0});
     rgbAdjust: function (inData, outData, width, height, options) {
+        options = defaultOptions(options, {r: 0, g: 0, b: 0, a: 0});
         var i, n = width * height * 4,
-            r, g, b,
+            r, g, b, a,
             ar = clamp(options.r, -1, 1) * 255,
             ag = clamp(options.g, -1, 1) * 255,
-            ab = clamp(options.b, -1, 1) * 255;
+            ab = clamp(options.b, -1, 1) * 255,
+            aa = clamp(options.a, -1, 1) * 255;
 
         for (i = 0; i < n; i += 4) {
             r = inData[i] + ar;
             g = inData[i + 1] + ag;
             b = inData[i + 2] + ab;
+            a = inData[i + 3] + aa;
             if (r < 0) {
                 r = 0;
             }
@@ -861,6 +862,9 @@ var process = {
             }
             if (b < 0) {
                 b = 0;
+            }
+            if (a < 0) {
+                a = 0;
             }
             if (r > 255) {
                 r = 255;
@@ -871,10 +875,13 @@ var process = {
             if (b > 255) {
                 b = 255;
             }
+            if (a > 255) {
+                a = 255;
+            }
             outData[i] = r;
             outData[i + 1] = g;
             outData[i + 2] = b;
-            outData[i + 3] = inData[i + 3];
+            outData[i + 3] = a;
         }
     },
 
