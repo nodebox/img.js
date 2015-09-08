@@ -755,9 +755,9 @@ Img.prototype.colorize = function (color) {
     return img.merge([this, i]);
 };
 
-Img.prototype.desaturate = function () {
+Img.prototype.desaturate = function (options) {
     var layer = this.toLayer(false);
-    layer.addFilter('desaturate');
+    layer.addFilter('desaturate', options);
     return this.withCanvas(layer.toCanvas());
 };
 

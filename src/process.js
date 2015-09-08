@@ -18,6 +18,9 @@ var util = require('./util');
 
 var clamp = util.clamp;
 
+var LUMINOSITY_ITU_R_BT601 = 'ITU-R BT.601';
+var LUMINOSITY_ITU_R_BT709 = 'ITU-R BT.709';
+
 function defaultOptions(options, defaults) {
     if (!options) {
         return defaults;
@@ -496,12 +499,19 @@ var process = {
         }
     },
 
-    desaturate: function (inData, outData, width, height) {
+    desaturate: function (inData, outData, width, height, options) {
+        options = defaultOptions(options, {method: LUMINOSITY_ITU_R_BT601});
         var i, n = width * height * 4,
-            level;
+            level, rCoff, gCoff, bCoff;
+
+        if (options.method === LUMINOSITY_ITU_R_BT601) {
+            rCoff = 0.3; gCoff = 0.59; bCoff = 0.11;
+        } else if (options.method === LUMINOSITY_ITU_R_BT709) {
+            rCoff = 0.2125; gCoff = 0.7154; bCoff = 0.0721;
+        }
 
         for (i = 0; i < n; i += 4) {
-            level = inData[i] * 0.3 + inData[i + 1] * 0.59 + inData[i + 2] * 0.11;
+            level = inData[i] * rCoff + inData[i + 1] * gCoff + inData[i + 2] * bCoff;
             outData[i] = level;
             outData[i + 1] = level;
             outData[i + 2] = level;
@@ -1315,19 +1325,6 @@ var process = {
             outData[p + 1] = clamp(round(inData[p + 1] * ratio), 0, 255);
             outData[p + 2] = clamp(round(inData[p + 2] * ratio), 0, 255);
             outData[p + 3] = inData[p + 3];
-        }
-    },
-
-    luminancebw: function (inData, outData, width, height) {
-        var i, n = width * height * 4,
-            lum;
-
-        for (i = 0; i < n; i += 4) {
-            lum = inData[i] * 0.2125 + inData[i + 1] * 0.7154 + inData[i + 2] * 0.0721;
-            outData[i] = lum;
-            outData[i + 1] = lum;
-            outData[i + 2] = lum;
-            outData[i + 3] = inData[i + 3];
         }
     },
 
