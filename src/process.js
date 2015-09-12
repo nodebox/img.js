@@ -972,13 +972,14 @@ var process = {
         }
     },
 
-    hsl: function (inData, outData, width, height, options) {
-        options = defaultOptions(options, {hue: 0.5, saturation: 0.3, lightness: 0.1});
+    hslAdjust: function (inData, outData, width, height, options) {
+        options = defaultOptions(options, {h: 0.5, s: 0.3, l: 0.1, a: 0});
         var i, n = width * height * 4,
-            r, g, b,
-            hue = clamp(options.hue, -1, 1),
-            saturation = clamp(options.saturation, -1, 1),
-            lightness = clamp(options.lightness, -1, 1),
+            r, g, b, a,
+            hue = clamp(options.h, -1, 1),
+            saturation = clamp(options.s, -1, 1),
+            lightness = clamp(options.l, -1, 1),
+            aa = clamp(options.a, -1, 1) * 255,
             satMul = 1 + saturation * (saturation < 0 ? 1 : 2),
             lightMul = lightness < 0 ? 1 + lightness : 1 - lightness,
             lightAdd = lightness < 0 ? 0 : lightness * 255,
@@ -991,6 +992,7 @@ var process = {
             r = inData[i];
             g = inData[i + 1];
             b = inData[i + 2];
+            a = inData[i + 3] + aa;
 
             if (hue !== 0 || saturation !== 0) {
                 // ok, here comes rgb to hsl + adjust + hsl to rgb, all in one jumbled mess.
@@ -1091,29 +1093,19 @@ var process = {
             g = g * lightMul + lightAdd;
             b = b * lightMul + lightAdd;
 
-            if (r < 0) {
-                r = 0;
-            }
-            if (g < 0) {
-                g = 0;
-            }
-            if (b < 0) {
-                b = 0;
-            }
-            if (r > 255) {
-                r = 255;
-            }
-            if (g > 255) {
-                g = 255;
-            }
-            if (b > 255) {
-                b = 255;
-            }
+            if (r < 0) { r = 0; }
+            if (g < 0) { g = 0; }
+            if (b < 0) { b = 0; }
+            if (a < 0) { a = 0; }
+            if (r > 255) { r = 255; }
+            if (g > 255) { g = 255; }
+            if (b > 255) { b = 255; }
+            if (a > 255) { a = 255; }
 
             outData[i] = r;
             outData[i + 1] = g;
             outData[i + 2] = b;
-            outData[i + 3] = inData[i + 3];
+            outData[i + 3] = a;
         }
     },
 
