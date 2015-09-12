@@ -502,16 +502,16 @@ var process = {
     desaturate: function (inData, outData, width, height, options) {
         options = defaultOptions(options, {method: LUMINOSITY_ITU_R_BT601});
         var i, n = width * height * 4,
-            level, rCoff, gCoff, bCoff;
+            level, rCoeff, gCoeff, bCoeff;
 
         if (options.method === LUMINOSITY_ITU_R_BT601) {
-            rCoff = 0.3; gCoff = 0.59; bCoff = 0.11;
+            rCoeff = 0.3; gCoeff = 0.59; bCoeff = 0.11;
         } else if (options.method === LUMINOSITY_ITU_R_BT709) {
-            rCoff = 0.2125; gCoff = 0.7154; bCoff = 0.0721;
+            rCoeff = 0.2125; gCoeff = 0.7154; bCoeff = 0.0721;
         }
 
         for (i = 0; i < n; i += 4) {
-            level = inData[i] * rCoff + inData[i + 1] * gCoff + inData[i + 2] * bCoff;
+            level = inData[i] * rCoeff + inData[i + 1] * gCoeff + inData[i + 2] * bCoeff;
             outData[i] = level;
             outData[i + 1] = level;
             outData[i + 2] = level;
