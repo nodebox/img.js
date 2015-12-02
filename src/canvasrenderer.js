@@ -448,7 +448,7 @@ CanvasRenderer.render = function (iCanvas) {
 CanvasRenderer.renderBW = function (iCanvas) {
     var canvas = CanvasRenderer.render(iCanvas);
     var data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
-    var bwFilter = {name: 'luminancebw'};
+    var bwFilter = {name: 'desaturate', options: {method: 'ITU-R BT.709'}};
     return CanvasRenderer.processImage(canvas, [bwFilter]);
 };
 
