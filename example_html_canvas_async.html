@@ -38,9 +38,9 @@
             var ctx = canvas.getContext('2d');
 
             var layer = iCanvas.addLayer('images/img1.jpg');
-            layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
+            layer.addFilter('rgbAdjust', {r: 0.25, g: 0.25});
             layer = iCanvas.addLayer('images/img2.jpg');
-            layer.addFilter('coloradjust', {r: 0.30, g: 0.20, b: 0.35});
+            layer.addFilter('rgbAdjust', {r: 0.30, g: 0.20, b: 0.35});
 
             canvas.width = w;
             canvas.height = h;

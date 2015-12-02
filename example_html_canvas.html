@@ -41,10 +41,10 @@
 
                 var iCanvas = new img.ImageCanvas(600, 450);
                 var layer = iCanvas.addLayer(images[img1]);
-                layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
+                layer.addFilter('rgbAdjust', {r: 0.25, g: 0.25});
 
                 layer = iCanvas.addLayer(images[img2]);
-                layer.addFilter('coloradjust', {r: 0.30, g: 0.20, b: 0.35});
+                layer.addFilter('rgbAdjust', {r: 0.30, g: 0.20, b: 0.35});
                 layer.opacity = 0.8;
 
                 canvas.width = w;

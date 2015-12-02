@@ -11,9 +11,9 @@
             img.loadImages([img1, img2], function (images) {
                 var iCanvas = new img.ImageCanvas(600, 450);
                 var layer = iCanvas.addLayer(images[img1]);
-                layer.addFilter('coloradjust', {r: 0.25, g: 0.25});
+                layer.addFilter('rgbAdjust', {r: 0.25, g: 0.25});
                 layer = iCanvas.addLayer(images[img2]);
-                layer.addFilter('coloradjust', {r: 0.30, g: 0.20, b: 0.35});
+                layer.addFilter('rgbAdjust', {r: 0.30, g: 0.20, b: 0.35});
                 layer.opacity = 0.5;
                 var mask = layer.mask.addLayer({startColor: 'white', endColor: 'black', type: 'radial', spread: 0.97});
                 mask.width = mask.height = 360;
